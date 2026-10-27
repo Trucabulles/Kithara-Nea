@@ -1,7 +1,7 @@
 # KITHÁRA NÉA
 
 A Windows application for studying chords, following lyrics and preparing song sheets. Audio analysis runs locally; no account or cloud service is required.
-
+https://youtu.be/63XpK9sEHMg
 ## Download
 
 Get the Windows x64 installer or portable ZIP from [Releases](https://github.com/Trucabulles/Kithara-Nea/releases). Windows 10 or later and an AVX2-capable x64 CPU are required for the bundled lyric decoder. A Vulkan-compatible GPU is optional; CPU processing remains available.

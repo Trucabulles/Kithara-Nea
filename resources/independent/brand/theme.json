@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "family": "Phthongos / Kithára Néa",
+  "reference": "Phthongos native/Bridge.h Theme",
+  "colors": {
+    "paper": "#f9faf4",
+    "ink": "#254962",
+    "accent": "#ad793c",
+    "border": "#cbbda5",
+    "control": "#fffdf6",
+    "button": "#f1ebdf",
+    "selected": "#e4d5bb",
+    "hover": "#e9e0d1",
+    "track": "#97a5ad",
+    "muted": "#71818b"
+  },
+  "font": {
+    "family": "Segoe UI",
+    "bodyPt": 10,
+    "editorPt": 12
+  },
+  "metrics": {
+    "radius": 6,
+    "dialogMargin": 22,
+    "spacing": 12
+  },
+  "assets": {
+    "icon": "icon.png",
+    "logo": "logo.png",
+    "logoSource": "logo-source.webp"
+  },
+  "origin": "Logo and icon provided by the user"
+}

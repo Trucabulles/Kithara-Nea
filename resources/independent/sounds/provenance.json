@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "banks": [
+    {
+      "id": "upright",
+      "file": "upright.sf2",
+      "sha256": "cf2a98eb38a32c4954b4b6e2caae4112d62dd8e892eceefdd7942b0e7d01ac2f",
+      "size": 9456310,
+      "license": "CC0-1.0",
+      "url": "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
+      "version": "2019-07-03"
+    },
+    {
+      "id": "nylon",
+      "url": "https://freepats.zenvoid.org/Guitar/SpanishClassicalGuitar/SpanishClassicalGuitar-SF2-20190618.7z",
+      "archiveSha256": "8c192f1fc640a553199a4a43a17ae12354a6a05e3d6aad79bd43b5d29314ff51",
+      "license": "CC0-1.0",
+      "file": "nylon.sf2",
+      "sha256": "0d4c08ea8c1c8924b3829084b0c8778f6d6b906f331e44fde51bc159f76b03b9",
+      "size": 19822546
+    },
+    {
+      "id": "steel",
+      "url": "https://freepats.zenvoid.org/Guitar/FSS-SteelStringGuitar/FSS-SteelStringGuitar-small-SF2-20200521.tar.xz",
+      "archiveSha256": "4efc464d2c7ade96287fce5c2447ff6b7627d88bb080a8a732f729c79cff643b",
+      "license": "GPL-3.0-or-later WITH FreePats-exception",
+      "file": "steel.sf2",
+      "sha256": "5dd52f7241b0e95609d241da0c582e3e73d488fde3887cd87a65f22f7a162ea1",
+      "size": 5349124
+    },
+    {
+      "id": "steel-source",
+      "url": "https://freepats.zenvoid.org/Guitar/FSS-SteelStringGuitar/FSS-SteelStringGuitar-small-SFZ-20200521.tar.xz",
+      "archiveSha256": "8b3937967edb609c72e5fab371d35defdce1c63702cd619da79951e1cf0c8dcc",
+      "license": "GPL-3.0-or-later WITH FreePats-exception"
+    },
+    {
+      "id": "ukulele",
+      "url": "https://github.com/freepats/ukulele1/releases/download/2026-08-11/Ukulele-SF2-20260811.7z",
+      "archiveSha256": "38eeee4b5a040c9c172a68dad2e37a657d8ae2d878f6a1f19ee2ab5f6dbd8461",
+      "license": "CC0-1.0",
+      "file": "ukulele.sf2",
+      "sha256": "7dea9ce3976980cd52d009e045c741ea924d1294b5e1aa5c60bb50b03d966d34",
+      "size": 2659064
+    },
+    {
+      "id": "clean",
+      "url": "https://github.com/freepats/electric-guitar-FSBS-clean/releases/download/2026-08-07/EGuitarFSBS-clean-bridge-small-SF2-20260807.7z",
+      "archiveSha256": "bcea7d4c92a1cc6a26e545a218b34e59037d4bab6cf0fce24396428e6934d69c",
+      "license": "CC0-1.0",
+      "file": "clean.sf2",
+      "sha256": "a58803acd8640a06a0a1a277a16ff4cd2610d9eab5fd6793741db4730c12f594",
+      "size": 10854982
+    },
+    {
+      "id": "jazz",
+      "url": "https://github.com/freepats/electric-guitar-FSBS-jazz/releases/download/2026-08-07/EGuitarFSBS-jazz-bridge-small-SF2-20260807.7z",
+      "archiveSha256": "d2090931a0339ba6b60c6713bc6d701393d3a420c20e56ad69a8d50de645135d",
+      "license": "CC0-1.0",
+      "file": "jazz.sf2",
+      "sha256": "1baca0ebb66627bbd4c08d4137c41728253588ce85504ed5148f06ea7c000d22",
+      "size": 7768134
+    },
+    {
+      "id": "mandolin",
+      "file": "mandolin.sf2",
+      "originalFile": "Mandolino.sf2",
+      "sha256": "a278a2c86ef92d6e78a5a8f49bb7df3b23b7d047e82dd15c8f881f71e4c0503a",
+      "size": 10160948,
+      "license": "LicenseRef-Polyphone-Public-Domain",
+      "url": "https://www.polyphone.io/en/soundfonts/plucked-strings/633-mandolino",
+      "licenseUrl": "https://www.polyphone.io/en/licenses",
+      "sharedBy": "bottrop",
+      "verifiedDate": "2026-10-25",
+      "modifications": "None; original SF2 bytes preserved."
+    },
+    {
+      "id": "banjo",
+      "file": "banjo.sf2",
+      "originalFile": "Windsor.sf2",
+      "sha256": "52d8f57dcb187e1953580d0ceb31506b33f2926f4d1bbebb6e3fc5dcd2600d59",
+      "size": 1324226,
+      "license": "LicenseRef-Polyphone-Public-Domain",
+      "url": "https://www.polyphone.io/en/soundfonts/plucked-strings/444-windsor-banjo-c1920-1930",
+      "licenseUrl": "https://www.polyphone.io/en/licenses",
+      "sharedBy": "Clive Nelson",
+      "verifiedDate": "2026-10-25",
+      "modifications": "None; original SF2 bytes preserved."
+    }
+  ]
+}

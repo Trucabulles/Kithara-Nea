@@ -1,0 +1,10 @@
+{
+  "url": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/small0.ckpt",
+  "file": "small0.ckpt",
+  "bytes": 8451101,
+  "sha256": "6074be2c4d490c5f6101fcc374a1ec72ae93456e23bb6019783b849f5dc7d47b",
+  "model": "small0",
+  "architecture": "beat-this 1.1.0",
+  "runtime": "torch 2.10.0+cpu; FP32; 2 intra-op threads; 1 inter-op thread",
+  "pipeline": "application 16 kHz frontend, 1500-frame chunks, margin 250, weighted overlap, existing peak decoder"
+}

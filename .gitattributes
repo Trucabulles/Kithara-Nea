@@ -1,0 +1,11 @@
+* text=auto
+*.cpp text
+*.h text
+*.md text
+*.ps1 text
+native/vendor/** linguist-vendored
+native/harmony/vendor/** linguist-vendored
+*.png binary
+*.ico binary
+*.webp binary
+*.pdf binary

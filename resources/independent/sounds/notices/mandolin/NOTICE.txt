@@ -1,0 +1,13 @@
+Mandolino.sf2
+
+Shared on Polyphone by bottrop.
+Source: https://www.polyphone.io/en/soundfonts/plucked-strings/633-mandolino
+License information: https://www.polyphone.io/en/licenses
+Verified: 2026-10-25
+
+The source page declares this soundfont to be public domain. Polyphone describes this designation as allowing modification, redistribution and commercial use. This is the source site's declaration; the SF2 file itself contains no separate copyright or license text. This designation is not being relabelled as CC0. The soundfont retains its own status independently of the KITHARA NEA application license.
+
+Distributed unchanged as mandolin.sf2.
+SHA-256: a278a2c86ef92d6e78a5a8f49bb7df3b23b7d047e82dd15c8f881f71e4c0503a
+Selected preset: bank 0, program 0 (Mandolino1).
+Octave adaptation is performed by the application during synthesis only; the SF2 samples and preset data are not modified.

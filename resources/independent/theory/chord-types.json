@@ -1,0 +1,731 @@
+{
+  "schemaVersion": 1,
+  "reference": "music21 10.5.1 harmony.CHORD_TYPES",
+  "wheelSha256": "dc3309498c4c95cebdf8d4f20c868deb6b63bce1d929cad4f51a7ccc982987b1",
+  "sourceSha256": "f1f3ae5ea1af9cd645e10e06f5fea4277f9cd886942412a7be0560bd2f55c43d",
+  "license": "BSD-3-Clause",
+  "types": [
+    {
+      "id": "major",
+      "intervals": [
+        "1",
+        "3",
+        "5"
+      ],
+      "aliases": [
+        "",
+        "M",
+        "maj"
+      ]
+    },
+    {
+      "id": "minor",
+      "intervals": [
+        "1",
+        "b3",
+        "5"
+      ],
+      "aliases": [
+        "m",
+        "min"
+      ]
+    },
+    {
+      "id": "augmented",
+      "intervals": [
+        "1",
+        "3",
+        "#5"
+      ],
+      "aliases": [
+        "+",
+        "aug"
+      ]
+    },
+    {
+      "id": "diminished",
+      "intervals": [
+        "1",
+        "b3",
+        "b5"
+      ],
+      "aliases": [
+        "dim",
+        "o"
+      ]
+    },
+    {
+      "id": "dominant-seventh",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "b7"
+      ],
+      "aliases": [
+        "7",
+        "dom7"
+      ]
+    },
+    {
+      "id": "major-seventh",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "7"
+      ],
+      "aliases": [
+        "maj7",
+        "M7"
+      ]
+    },
+    {
+      "id": "minor-major-seventh",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "7"
+      ],
+      "aliases": [
+        "mM7",
+        "m#7",
+        "minmaj7"
+      ]
+    },
+    {
+      "id": "minor-seventh",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "b7"
+      ],
+      "aliases": [
+        "m7",
+        "min7"
+      ]
+    },
+    {
+      "id": "augmented-major-seventh",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "7"
+      ],
+      "aliases": [
+        "+M7",
+        "augmaj7"
+      ]
+    },
+    {
+      "id": "augmented-seventh",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "b7"
+      ],
+      "aliases": [
+        "7+",
+        "+7",
+        "aug7"
+      ]
+    },
+    {
+      "id": "half-diminished-seventh",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "b7"
+      ],
+      "aliases": [
+        "ø7",
+        "m7b5"
+      ]
+    },
+    {
+      "id": "diminished-seventh",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "bb7"
+      ],
+      "aliases": [
+        "o7",
+        "dim7"
+      ]
+    },
+    {
+      "id": "seventh-flat-five",
+      "intervals": [
+        "1",
+        "3",
+        "b5",
+        "b7"
+      ],
+      "aliases": [
+        "dom7dim5"
+      ]
+    },
+    {
+      "id": "major-sixth",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      "aliases": [
+        "6"
+      ]
+    },
+    {
+      "id": "minor-sixth",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "6"
+      ],
+      "aliases": [
+        "m6",
+        "min6"
+      ]
+    },
+    {
+      "id": "major-ninth",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "7",
+        "9"
+      ],
+      "aliases": [
+        "M9",
+        "Maj9"
+      ]
+    },
+    {
+      "id": "dominant-ninth",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "b7",
+        "9"
+      ],
+      "aliases": [
+        "9",
+        "dom9"
+      ]
+    },
+    {
+      "id": "minor-major-ninth",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "7",
+        "9"
+      ],
+      "aliases": [
+        "mM9",
+        "minmaj9"
+      ]
+    },
+    {
+      "id": "minor-ninth",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "b7",
+        "9"
+      ],
+      "aliases": [
+        "m9",
+        "min9"
+      ]
+    },
+    {
+      "id": "augmented-major-ninth",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "7",
+        "9"
+      ],
+      "aliases": [
+        "+M9",
+        "augmaj9"
+      ]
+    },
+    {
+      "id": "augmented-dominant-ninth",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "b7",
+        "9"
+      ],
+      "aliases": [
+        "9#5",
+        "+9",
+        "aug9"
+      ]
+    },
+    {
+      "id": "half-diminished-ninth",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "b7",
+        "9"
+      ],
+      "aliases": [
+        "ø9"
+      ]
+    },
+    {
+      "id": "half-diminished-minor-ninth",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "b7",
+        "b9"
+      ],
+      "aliases": [
+        "øb9"
+      ]
+    },
+    {
+      "id": "diminished-ninth",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "bb7",
+        "9"
+      ],
+      "aliases": [
+        "o9",
+        "dim9"
+      ]
+    },
+    {
+      "id": "diminished-minor-ninth",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "bb7",
+        "b9"
+      ],
+      "aliases": [
+        "ob9",
+        "dimb9"
+      ]
+    },
+    {
+      "id": "dominant-11th",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "b7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "11",
+        "dom11"
+      ]
+    },
+    {
+      "id": "major-11th",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "M11",
+        "Maj11"
+      ]
+    },
+    {
+      "id": "minor-major-11th",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "mM11",
+        "minmaj11"
+      ]
+    },
+    {
+      "id": "minor-11th",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "b7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "m11",
+        "min11"
+      ]
+    },
+    {
+      "id": "augmented-major-11th",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "+M11",
+        "augmaj11"
+      ]
+    },
+    {
+      "id": "augmented-11th",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "b7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "+11",
+        "aug11"
+      ]
+    },
+    {
+      "id": "half-diminished-11th",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "b7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "ø11"
+      ]
+    },
+    {
+      "id": "diminished-11th",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "bb7",
+        "9",
+        "11"
+      ],
+      "aliases": [
+        "o11",
+        "dim11"
+      ]
+    },
+    {
+      "id": "major-13th",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "M13",
+        "Maj13"
+      ]
+    },
+    {
+      "id": "dominant-13th",
+      "intervals": [
+        "1",
+        "3",
+        "5",
+        "b7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "13",
+        "dom13"
+      ]
+    },
+    {
+      "id": "minor-major-13th",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "mM13",
+        "minmaj13"
+      ]
+    },
+    {
+      "id": "minor-13th",
+      "intervals": [
+        "1",
+        "b3",
+        "5",
+        "b7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "m13",
+        "min13"
+      ]
+    },
+    {
+      "id": "augmented-major-13th",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "+M13",
+        "augmaj13"
+      ]
+    },
+    {
+      "id": "augmented-dominant-13th",
+      "intervals": [
+        "1",
+        "3",
+        "#5",
+        "b7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "+13",
+        "aug13"
+      ]
+    },
+    {
+      "id": "half-diminished-13th",
+      "intervals": [
+        "1",
+        "b3",
+        "b5",
+        "b7",
+        "9",
+        "11",
+        "13"
+      ],
+      "aliases": [
+        "ø13"
+      ]
+    },
+    {
+      "id": "suspended-second",
+      "intervals": [
+        "1",
+        "2",
+        "5"
+      ],
+      "aliases": [
+        "sus2"
+      ]
+    },
+    {
+      "id": "suspended-fourth",
+      "intervals": [
+        "1",
+        "4",
+        "5"
+      ],
+      "aliases": [
+        "sus",
+        "sus4"
+      ]
+    },
+    {
+      "id": "suspended-fourth-seventh",
+      "intervals": [
+        "1",
+        "4",
+        "5",
+        "b7"
+      ],
+      "aliases": [
+        "7sus",
+        "7sus4"
+      ]
+    },
+    {
+      "id": "Neapolitan",
+      "intervals": [
+        "1",
+        "b2",
+        "3",
+        "b5"
+      ],
+      "aliases": [
+        "N6"
+      ]
+    },
+    {
+      "id": "Italian",
+      "intervals": [
+        "1",
+        "#4",
+        "b6"
+      ],
+      "aliases": [
+        "It+6",
+        "It"
+      ]
+    },
+    {
+      "id": "French",
+      "intervals": [
+        "1",
+        "2",
+        "#4",
+        "b6"
+      ],
+      "aliases": [
+        "Fr+6",
+        "Fr"
+      ]
+    },
+    {
+      "id": "German",
+      "intervals": [
+        "1",
+        "b3",
+        "#4",
+        "b6"
+      ],
+      "aliases": [
+        "Gr+6",
+        "Ger"
+      ]
+    },
+    {
+      "id": "pedal",
+      "intervals": [
+        "1"
+      ],
+      "aliases": [
+        "pedal"
+      ]
+    },
+    {
+      "id": "power",
+      "intervals": [
+        "1",
+        "5"
+      ],
+      "aliases": [
+        "power"
+      ]
+    },
+    {
+      "id": "Tristan",
+      "intervals": [
+        "1",
+        "#4",
+        "#6",
+        "#9"
+      ],
+      "aliases": [
+        "tristan"
+      ]
+    }
+  ],
+  "composites": [
+    {
+      "alias": "5",
+      "base": "power"
+    },
+    {
+      "alias": "69",
+      "base": "major-sixth",
+      "add": [
+        "9"
+      ]
+    },
+    {
+      "alias": "m69",
+      "base": "minor-sixth",
+      "add": [
+        "9"
+      ]
+    },
+    {
+      "alias": "-5",
+      "base": "major",
+      "alter": [
+        "b5"
+      ]
+    },
+    {
+      "alias": "m+5",
+      "base": "minor",
+      "alter": [
+        "#5"
+      ]
+    }
+  ],
+  "operations": {
+    "add": "Keep existing degrees and append the named interval",
+    "alter": "Replace the same numbered degree, or add it if absent",
+    "sus2": "Remove degree 3 and add degree 2",
+    "sus4": "Remove degree 3 and add degree 4"
+  },
+  "references": [
+    "https://www.music21.org/music21docs/moduleReference/moduleHarmony.html",
+    "https://www.w3.org/2021/06/musicxml40/musicxml-reference/elements/degree/"
+  ]
+}

@@ -1,0 +1,125 @@
+"""Build the pinned, audio-only LGPL FFmpeg executable for Windows x64.
+
+Build dependencies stay in build/ffmpeg-audio. No system installation is needed.
+The executable is staged there; it does not replace the application's decoder.
+"""
+import argparse
+import ctypes
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import urllib.request
+import zipfile
+
+ROOT = Path(__file__).resolve().parents[1]
+BUILD = ROOT / "build" / "ffmpeg-audio"
+DOWNLOADS = BUILD / "downloads"
+ARTIFACTS = {
+    "ffmpeg-n8.1.zip": (
+        "https://codeload.github.com/FFmpeg/FFmpeg/zip/refs/tags/n8.1",
+        "58cb783a2b116244d23e5cf7b9b6f975cab13891b5976fb7b780b46b0e7b8fd6"),
+    "w64devkit-x64-2.10.1.7z.exe": (
+        "https://github.com/skeeto/w64devkit/releases/download/v2.10.1/w64devkit-x64-2.10.1.7z.exe",
+        "add1edf984ce4d473cfeb7c52e0ab38db73a855bba6c7f564d5e16648eb2896a"),
+    "nasm-2.16.03-win64.zip": (
+        "https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/win64/nasm-2.16.03-win64.zip",
+        "3ee4782247bcb874378d02f7eab4e294a84d3d15f3f6ee2de2f47a46aa7226e6"),
+}
+
+
+def fetch(name):
+    url, expected = ARTIFACTS[name]
+    path = DOWNLOADS / name
+    if not path.exists():
+        partial = path.with_suffix(path.suffix + ".partial")
+        with urllib.request.urlopen(url, timeout=120) as response, partial.open("wb") as out:
+            shutil.copyfileobj(response, out)
+        partial.replace(path)
+    if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        raise RuntimeError("Checksum mismatch: " + name)
+    return path
+
+
+def extract(archive, destination):
+    with zipfile.ZipFile(archive) as source:
+        for entry in source.infolist():
+            if not (destination / entry.filename).resolve().is_relative_to(destination.resolve()):
+                raise RuntimeError("Unsafe archive path")
+        source.extractall(destination)
+
+
+def short_path(path):
+    # FFmpeg's makefiles require paths without spaces. Do not move the workspace.
+    buffer = ctypes.create_unicode_buffer(32768)
+    if not ctypes.windll.kernel32.GetShortPathNameW(str(path), buffer, len(buffer)):
+        raise OSError("Cannot obtain build path: " + str(path))
+    value = buffer.value.replace("\\", "/")
+    if " " in value:
+        raise RuntimeError("Build requires 8.3 paths enabled, or a workspace path without spaces")
+    return value
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--jobs", type=int, default=min(12, max(1, (os.cpu_count() or 2) // 2)))
+    args = parser.parse_args()
+    DOWNLOADS.mkdir(parents=True, exist_ok=True)
+    archives = {name: fetch(name) for name in ARTIFACTS}
+    toolchain = BUILD / "toolchain" / "w64devkit"
+    if not (toolchain / "bin/gcc.exe").exists():
+        sevenzip = shutil.which("7z") or str(Path(os.environ.get("ProgramFiles", "C:/Program Files")) / "7-Zip/7z.exe")
+        subprocess.run([sevenzip, "x", str(archives["w64devkit-x64-2.10.1.7z.exe"]),
+                        "-o" + str(toolchain.parent), "-y"], check=True)
+    source = BUILD / "source" / "FFmpeg-n8.1"
+    if not (source / "configure").exists():
+        extract(archives["ffmpeg-n8.1.zip"], source.parent)
+    nasm = BUILD / "nasm" / "nasm-2.16.03"
+    if not (nasm / "nasm.exe").exists():
+        extract(archives["nasm-2.16.03-win64.zip"], nasm.parent)
+    output = BUILD / "compiled"
+    output.mkdir(exist_ok=True)
+    env = os.environ.copy()
+    env["PATH"] = str(toolchain / "bin") + os.pathsep + str(nasm) + os.pathsep + env["PATH"]
+    temporary = BUILD / "tmp"
+    temporary.mkdir(exist_ok=True)
+    env["TMPDIR"] = short_path(temporary)
+    options = [
+        "--target-os=mingw32", "--arch=x86_64", "--cc=gcc", "--cxx=g++", "--ar=ar", "--nm=nm",
+        "--disable-autodetect", "--disable-everything", "--disable-gpl", "--disable-nonfree",
+        "--disable-version3", "--disable-network", "--disable-doc", "--disable-debug",
+        "--disable-ffplay", "--disable-ffprobe", "--disable-avdevice",
+        "--disable-swscale", "--disable-shared", "--enable-static", "--enable-small",
+        "--enable-ffmpeg", "--enable-avcodec", "--enable-avformat", "--enable-avfilter",
+        "--enable-swresample", "--enable-protocol=file,pipe",
+        "--enable-decoder=aac,aac_latm,alac,mp3float,mp3adufloat,mp3on4float,mp2float,flac,vorbis,opus,wmav1,wmav2,wmapro,wmalossless,ape,wavpack,tta,pcm_*,adpcm_*",
+        "--enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le,pcm_s32le",
+        "--enable-parser=aac,aac_latm,mpegaudio,flac,vorbis,opus,ac3",
+        "--enable-demuxer=wav,aiff,mp3,flac,ogg,mov,aac,asf,ape,wv,tta,matroska,pcm_f32le,pcm_s16le",
+        "--enable-muxer=wav,pcm_f32le,pcm_s16le",
+        "--enable-filter=abuffer,abuffersink,anull,aformat,aresample,asetrate,atempo,atrim,asetpts,pan",
+    ]
+    with (BUILD / "configure.log").open("w", encoding="utf8") as log:
+        subprocess.run([str(toolchain / "bin/sh.exe"), short_path(source / "configure"), *options],
+                       cwd=output, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+    with (BUILD / "make.log").open("w", encoding="utf8") as log:
+        subprocess.run([str(toolchain / "bin/make.exe"), "-j" + str(max(1, args.jobs))],
+                       cwd=output, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+    binary = output / "ffmpeg.exe"
+    version = subprocess.check_output([str(binary), "-version"], text=True)
+    license_text = subprocess.check_output([str(binary), "-L"], text=True, stderr=subprocess.STDOUT)
+    if "--enable-gpl" in version or "--enable-nonfree" in version or "Lesser General Public License" not in license_text:
+        raise RuntimeError("Unexpected FFmpeg license configuration")
+    metadata = {"version": "8.1", "platform": "windows-x64", "license": "LGPL-2.1-or-later",
+                "options": options, "inputs": {n: {"url": u, "sha256": h} for n, (u, h) in ARTIFACTS.items()},
+                "binarySha256": hashlib.sha256(binary.read_bytes()).hexdigest(), "binaryBytes": binary.stat().st_size}
+    (BUILD / "provenance.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf8")
+    (BUILD / "version.txt").write_text(version, encoding="utf8")
+    print(binary, flush=True)
+    print(json.dumps({"bytes": binary.stat().st_size, "license": metadata["license"]}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

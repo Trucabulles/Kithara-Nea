@@ -1,0 +1,15 @@
+{
+  "source": "librosa 0.11.0 hybrid_cqt",
+  "tuning_bins": 100,
+  "tuning_resolution": 0.01,
+  "audio_independent": true,
+  "generation": "Sparse official filter coefficients and analytical normalization constants; no audio-dependent coefficients",
+  "parameters": {
+    "sr": 22050,
+    "hop": 512,
+    "bins": 288,
+    "bins_per_octave": 36,
+    "fmin": "F#0",
+    "resampling": "soxr_hq"
+  }
+}

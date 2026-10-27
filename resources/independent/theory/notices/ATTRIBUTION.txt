@@ -1,0 +1,4 @@
+music21 10.5.1: Copyright (c) 2006-2026 Michael Scott Asato Cuthbert, BSD-3-Clause.
+Data from TuneStand (https://tunestand.com), dataset 1.0.0, CC BY 4.0. Changes: explicit derivations, enharmonic spelling, selected catalogue and JSON structure; see tunings.json.
+String-tunings by Robert Pirtle, MIT, used as a complementary reference.
+Chord notation follows Harte / MusicXML conventions.

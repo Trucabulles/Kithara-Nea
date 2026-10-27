@@ -1,0 +1,10 @@
+Whisper models — OpenAI, MIT.
+whisper.cpp v1.9.1 — Georgi Gerganov and contributors, MIT.
+Sources: https://github.com/openai/whisper ; https://github.com/ggml-org/whisper.cpp
+Converted models: https://huggingface.co/ggerganov/whisper.cpp
+Original licenses are included in licenses/.
+Modified CPU and Vulkan decoders export complete DTW token interval boundaries.
+Diagnostic source paths are reduced to file names; decoding operations are unchanged.
+The CPU DTW decoder targets x64 AVX2. Vulkan backends are optional and isolated;
+the CPU decoder remains usable without Vulkan. No graphics driver or SDK is bundled.
+SHA-256 checksums are recorded in manifest-sha256.json.

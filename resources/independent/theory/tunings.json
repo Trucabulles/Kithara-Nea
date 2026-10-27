@@ -1,0 +1,748 @@
+{
+  "schemaVersion": 1,
+  "attribution": "Data from TuneStand (https://tunestand.com)",
+  "referenceVersion": "1.0.0",
+  "referenceSha256": "d6a0f7bc5461163c21ea1f798a816f0916861d3f7f2a21c21d3078155f04d263",
+  "license": "CC-BY-4.0 for reference data; explicit derivations documented per entry",
+  "sources": [
+    "https://tunestand.com/data",
+    "https://creativecommons.org/licenses/by/4.0/",
+    "https://github.com/pirtleshell/string-tunings"
+  ],
+  "tunings": [
+    {
+      "id": "guitar-standard",
+      "instrument": "guitar",
+      "name": "Standard",
+      "tuning": "E2,A2,D3,G3,B3,E4",
+      "midi": [
+        40,
+        45,
+        50,
+        55,
+        59,
+        64
+      ],
+      "reference": "guitar-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-drop-d",
+      "instrument": "guitar",
+      "name": "Drop D",
+      "tuning": "D2,A2,D3,G3,B3,E4",
+      "midi": [
+        38,
+        45,
+        50,
+        55,
+        59,
+        64
+      ],
+      "reference": "guitar-drop-d",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-double-drop-d",
+      "instrument": "guitar",
+      "name": "Double drop D",
+      "tuning": "D2,A2,D3,G3,B3,D4",
+      "midi": [
+        38,
+        45,
+        50,
+        55,
+        59,
+        62
+      ],
+      "reference": "guitar-double-drop-d",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-drop-c",
+      "instrument": "guitar",
+      "name": "Drop C",
+      "tuning": "C2,G2,C3,F3,A3,D4",
+      "midi": [
+        36,
+        43,
+        48,
+        53,
+        57,
+        62
+      ],
+      "reference": "guitar-drop-c",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-drop-b",
+      "instrument": "guitar",
+      "name": "Drop B",
+      "tuning": "B1,F#2,B2,E3,G#3,C#4",
+      "midi": [
+        35,
+        42,
+        47,
+        52,
+        56,
+        61
+      ],
+      "reference": "guitar-drop-b",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-dadgad",
+      "instrument": "guitar",
+      "name": "DADGAD",
+      "tuning": "D2,A2,D3,G3,A3,D4",
+      "midi": [
+        38,
+        45,
+        50,
+        55,
+        57,
+        62
+      ],
+      "reference": "guitar-dadgad",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-open-d",
+      "instrument": "guitar",
+      "name": "Open D",
+      "tuning": "D2,A2,D3,F#3,A3,D4",
+      "midi": [
+        38,
+        45,
+        50,
+        54,
+        57,
+        62
+      ],
+      "reference": "guitar-open-d",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-open-e",
+      "instrument": "guitar",
+      "name": "Open E",
+      "tuning": "E2,B2,E3,G#3,B3,E4",
+      "midi": [
+        40,
+        47,
+        52,
+        56,
+        59,
+        64
+      ],
+      "reference": "guitar-open-e",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-open-g",
+      "instrument": "guitar",
+      "name": "Open G",
+      "tuning": "D2,G2,D3,G3,B3,D4",
+      "midi": [
+        38,
+        43,
+        50,
+        55,
+        59,
+        62
+      ],
+      "reference": "guitar-open-g",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-open-a",
+      "instrument": "guitar",
+      "name": "Open A",
+      "tuning": "E2,A2,E3,A3,C#4,E4",
+      "midi": [
+        40,
+        45,
+        52,
+        57,
+        61,
+        64
+      ],
+      "reference": "guitar-open-a",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-dgcgcd",
+      "instrument": "guitar",
+      "name": "DGCGCD",
+      "tuning": "D2,G2,C3,G3,C4,D4",
+      "midi": [
+        38,
+        43,
+        48,
+        55,
+        60,
+        62
+      ],
+      "reference": "guitar-standard",
+      "derivation": "Explicit DGCGCD pitch spelling, ascending string order, tuning in C",
+      "changes": {}
+    },
+    {
+      "id": "guitar-open-c6",
+      "instrument": "guitar",
+      "name": "Open C6",
+      "tuning": "C2,A2,C3,G3,C4,E4",
+      "midi": [
+        36,
+        45,
+        48,
+        55,
+        60,
+        64
+      ],
+      "reference": "guitar-open-c",
+      "derivation": "Open C with the second course raised from G2 to A2, giving a C6 chord",
+      "changes": {
+        "1": "A2"
+      }
+    },
+    {
+      "id": "guitar-open-c",
+      "instrument": "guitar",
+      "name": "Open C",
+      "tuning": "C2,G2,C3,G3,C4,E4",
+      "midi": [
+        36,
+        43,
+        48,
+        55,
+        60,
+        64
+      ],
+      "reference": "guitar-open-c",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-standard-eb",
+      "instrument": "guitar",
+      "name": "Standard Eb",
+      "tuning": "Eb2,Ab2,Db3,Gb3,Bb3,Eb4",
+      "midi": [
+        39,
+        44,
+        49,
+        54,
+        58,
+        63
+      ],
+      "reference": "guitar-half-step-down",
+      "derivation": "Enharmonic flat spelling of the reference half-step-down tuning",
+      "changes": {}
+    },
+    {
+      "id": "guitar-standard-d",
+      "instrument": "guitar",
+      "name": "Standard D",
+      "tuning": "D2,G2,C3,F3,A3,D4",
+      "midi": [
+        38,
+        43,
+        48,
+        53,
+        57,
+        62
+      ],
+      "reference": "guitar-whole-step-down",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-standard-7-strings",
+      "instrument": "guitar",
+      "name": "Standard 7 strings",
+      "tuning": "B1,E2,A2,D3,G3,B3,E4",
+      "midi": [
+        35,
+        40,
+        45,
+        50,
+        55,
+        59,
+        64
+      ],
+      "reference": "guitar-7-string-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-7-strings-drop-a",
+      "instrument": "guitar",
+      "name": "7 strings drop A",
+      "tuning": "A1,E2,A2,D3,G3,B3,E4",
+      "midi": [
+        33,
+        40,
+        45,
+        50,
+        55,
+        59,
+        64
+      ],
+      "reference": "guitar-7-string-drop-a",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "guitar-7-strings-drop-g",
+      "instrument": "guitar",
+      "name": "7 strings drop G",
+      "tuning": "G1,E2,A2,D3,G3,B3,E4",
+      "midi": [
+        31,
+        40,
+        45,
+        50,
+        55,
+        59,
+        64
+      ],
+      "reference": "guitar-7-string-standard",
+      "derivation": "Reference seven-string standard, lowest string tuned to G1",
+      "changes": {
+        "0": "G1"
+      }
+    },
+    {
+      "id": "guitar-7-strings-drop-e",
+      "instrument": "guitar",
+      "name": "7 strings drop E",
+      "tuning": "E1,B1,E2,A2,D3,G3,B3",
+      "midi": [
+        28,
+        35,
+        40,
+        45,
+        50,
+        55,
+        59
+      ],
+      "reference": "guitar-b-standard",
+      "derivation": "Reference six-string B-standard tuning with one added low E1 string",
+      "changes": {}
+    },
+    {
+      "id": "guitar-7-strings-open-c",
+      "instrument": "guitar",
+      "name": "7 strings open C",
+      "tuning": "G1,C2,G2,C3,G3,C4,E4",
+      "midi": [
+        31,
+        36,
+        43,
+        48,
+        55,
+        60,
+        64
+      ],
+      "reference": "guitar-open-c",
+      "derivation": "Reference open C with one added low G1 string",
+      "changes": {}
+    },
+    {
+      "id": "ukulele-standard",
+      "instrument": "ukulele",
+      "name": "Standard",
+      "tuning": "G4,C4,E4,A4",
+      "midi": [
+        67,
+        60,
+        64,
+        69
+      ],
+      "reference": "ukulele-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "ukulele-d",
+      "instrument": "ukulele",
+      "name": "D",
+      "tuning": "A4,D4,F#4,B4",
+      "midi": [
+        69,
+        62,
+        66,
+        71
+      ],
+      "reference": "ukulele-d-tuning",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "ukulele-slack-key",
+      "instrument": "ukulele",
+      "name": "Slack Key",
+      "tuning": "G4,C4,E4,G4",
+      "midi": [
+        67,
+        60,
+        64,
+        67
+      ],
+      "reference": "ukulele-standard",
+      "derivation": "Lower the A4 string to G4, giving reentrant open C",
+      "changes": {
+        "3": "G4"
+      }
+    },
+    {
+      "id": "ukulele-slide",
+      "instrument": "ukulele",
+      "name": "Slide",
+      "tuning": "G4,C4,E4,Bb4",
+      "midi": [
+        67,
+        60,
+        64,
+        70
+      ],
+      "reference": "ukulele-standard",
+      "derivation": "Raise the A4 string to Bb4, giving reentrant C7",
+      "changes": {
+        "3": "Bb4"
+      }
+    },
+    {
+      "id": "ukulele-baritone",
+      "instrument": "ukulele",
+      "name": "Baritone",
+      "tuning": "D3,G3,B3,E4",
+      "midi": [
+        50,
+        55,
+        59,
+        64
+      ],
+      "reference": "ukulele-baritone-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "ukulele-bass",
+      "instrument": "ukulele",
+      "name": "Bass",
+      "tuning": "E1,A1,D2,G2",
+      "midi": [
+        28,
+        33,
+        38,
+        43
+      ],
+      "reference": "bass-standard",
+      "derivation": "Bass ukulele: same four open-string pitches as the standard bass reference",
+      "changes": {}
+    },
+    {
+      "id": "mandolin-standard",
+      "instrument": "mandolin",
+      "name": "Standard",
+      "tuning": "G3,D4,A4,E5",
+      "midi": [
+        55,
+        62,
+        69,
+        76
+      ],
+      "reference": "mandolin-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "mandolin-sawmill",
+      "instrument": "mandolin",
+      "name": "Sawmill",
+      "tuning": "G3,D4,G4,D5",
+      "midi": [
+        55,
+        62,
+        67,
+        74
+      ],
+      "reference": "mandolin-cross-tuning-gdad",
+      "derivation": "GDGD cross tuning, one pitch per doubled course",
+      "changes": {
+        "2": "G4"
+      }
+    },
+    {
+      "id": "mandolin-open-g",
+      "instrument": "mandolin",
+      "name": "Open G",
+      "tuning": "G3,D4,G4,B4",
+      "midi": [
+        55,
+        62,
+        67,
+        71
+      ],
+      "reference": "mandolin-standard",
+      "derivation": "GDGB open G chord, one pitch per doubled course",
+      "changes": {
+        "2": "G4",
+        "3": "B4"
+      }
+    },
+    {
+      "id": "mandolin-irish",
+      "instrument": "mandolin",
+      "name": "Irish",
+      "tuning": "G3,D4,A4,D5",
+      "midi": [
+        55,
+        62,
+        69,
+        74
+      ],
+      "reference": "mandolin-cross-tuning-gdad",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "bass-standard",
+      "instrument": "bass",
+      "name": "Standard",
+      "tuning": "E1,A1,D2,G2",
+      "midi": [
+        28,
+        33,
+        38,
+        43
+      ],
+      "reference": "bass-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "bass-drop-eb",
+      "instrument": "bass",
+      "name": "Drop Eb",
+      "tuning": "Eb1,A1,D2,G2",
+      "midi": [
+        27,
+        33,
+        38,
+        43
+      ],
+      "reference": "bass-standard",
+      "derivation": "Only the low E1 string is lowered by one semitone",
+      "changes": {
+        "0": "Eb1"
+      }
+    },
+    {
+      "id": "bass-drop-b",
+      "instrument": "bass",
+      "name": "Drop B",
+      "tuning": "B0,A1,D2,G2",
+      "midi": [
+        23,
+        33,
+        38,
+        43
+      ],
+      "reference": "bass-standard",
+      "derivation": "Only the low E1 string is lowered to B0",
+      "changes": {
+        "0": "B0"
+      }
+    },
+    {
+      "id": "bass-drop-d",
+      "instrument": "bass",
+      "name": "Drop D",
+      "tuning": "D1,A1,D2,G2",
+      "midi": [
+        26,
+        33,
+        38,
+        43
+      ],
+      "reference": "bass-drop-d",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "bass-tenor",
+      "instrument": "bass",
+      "name": "Tenor",
+      "tuning": "A1,D2,G2,C3",
+      "midi": [
+        33,
+        38,
+        43,
+        48
+      ],
+      "reference": "bass-standard",
+      "derivation": "Four-string bass in fourths, five semitones above standard",
+      "changes": {}
+    },
+    {
+      "id": "bass-fifths",
+      "instrument": "bass",
+      "name": "Fifths",
+      "tuning": "C1,G1,D2,A2",
+      "midi": [
+        24,
+        31,
+        38,
+        45
+      ],
+      "reference": "bass-standard",
+      "derivation": "Four open-string pitches separated by perfect fifths, starting at C1",
+      "changes": {}
+    },
+    {
+      "id": "bass-5-strings",
+      "instrument": "bass",
+      "name": "5 strings",
+      "tuning": "B0,E1,A1,D2,G2",
+      "midi": [
+        23,
+        28,
+        33,
+        38,
+        43
+      ],
+      "reference": "bass-5-string-standard",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "bass-5-strings-tenor",
+      "instrument": "bass",
+      "name": "5 strings tenor",
+      "tuning": "E1,A1,D2,G2,C3",
+      "midi": [
+        28,
+        33,
+        38,
+        43,
+        48
+      ],
+      "reference": "bass-5-string-tenor",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "bass-6-strings",
+      "instrument": "bass",
+      "name": "6 strings",
+      "tuning": "B0,E1,A1,D2,G2,C3",
+      "midi": [
+        23,
+        28,
+        33,
+        38,
+        43,
+        48
+      ],
+      "reference": "bass-5-string-standard",
+      "derivation": "Reference five-string bass plus high C3, continuing fourths",
+      "changes": {}
+    },
+    {
+      "id": "bass-6-strings-guitar-intervals",
+      "instrument": "bass",
+      "name": "6 strings guitar intervals",
+      "tuning": "B0,E1,A1,D2,F#2,B2",
+      "midi": [
+        23,
+        28,
+        33,
+        38,
+        42,
+        47
+      ],
+      "reference": "bass-5-string-standard",
+      "derivation": "Six-string B-standard guitar intervals, one octave below guitar B-standard",
+      "changes": {}
+    },
+    {
+      "id": "banjo-standard-c",
+      "instrument": "banjo",
+      "name": "Standard C",
+      "tuning": "G4,C3,G3,B3,D4",
+      "midi": [
+        67,
+        48,
+        55,
+        59,
+        62
+      ],
+      "reference": "banjo-open-g",
+      "derivation": "Open G reference with low D3 lowered to C3; high drone stays G4",
+      "changes": {
+        "1": "C3"
+      }
+    },
+    {
+      "id": "banjo-sawmill",
+      "instrument": "banjo",
+      "name": "Sawmill",
+      "tuning": "G4,D3,G3,C4,D4",
+      "midi": [
+        67,
+        50,
+        55,
+        60,
+        62
+      ],
+      "reference": "banjo-sawmill",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "banjo-open-g",
+      "instrument": "banjo",
+      "name": "Open G",
+      "tuning": "G4,D3,G3,B3,D4",
+      "midi": [
+        67,
+        50,
+        55,
+        59,
+        62
+      ],
+      "reference": "banjo-open-g",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    },
+    {
+      "id": "banjo-double-c",
+      "instrument": "banjo",
+      "name": "Double C",
+      "tuning": "G4,C3,G3,C4,D4",
+      "midi": [
+        67,
+        48,
+        55,
+        60,
+        62
+      ],
+      "reference": "banjo-double-c",
+      "derivation": "Reference tuning, in string/course order",
+      "changes": {}
+    }
+  ]
+}

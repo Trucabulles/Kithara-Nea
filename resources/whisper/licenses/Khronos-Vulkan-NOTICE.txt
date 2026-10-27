@@ -1,0 +1,8 @@
+Vulkan-Headers and Vulkan-Hpp
+Copyright 2015-2026 The Khronos Group Inc. and contributors.
+Used header files: Apache-2.0 OR MIT.
+Vulkan-Headers revision 73814d006638aa00bd553215b054f0f02e457e22
+Vulkan-Hpp revision da4cb2bc27917f3e5ff40346e448f39515248c32
+https://github.com/KhronosGroup/Vulkan-Headers
+https://github.com/KhronosGroup/Vulkan-Hpp
+No graphics driver or Vulkan SDK is redistributed.

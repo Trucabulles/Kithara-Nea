@@ -1,0 +1,13 @@
+Windsor.sf2
+
+Shared on Polyphone by Clive Nelson.
+Source: https://www.polyphone.io/en/soundfonts/plucked-strings/444-windsor-banjo-c1920-1930
+License information: https://www.polyphone.io/en/licenses
+Verified: 2026-10-25
+
+The source page declares this soundfont to be public domain. Polyphone describes this designation as allowing modification, redistribution and commercial use. This is the source site's declaration; the SF2 file itself contains no separate copyright or license text. This designation is not being relabelled as CC0. The soundfont retains its own status independently of the KITHARA NEA application license.
+
+Distributed unchanged as banjo.sf2.
+SHA-256: 52d8f57dcb187e1953580d0ceb31506b33f2926f4d1bbebb6e3fc5dcd2600d59
+Selected preset: bank 0, program 105 (Banjo).
+Octave adaptation is performed by the application during synthesis only; the SF2 samples and preset data are not modified.

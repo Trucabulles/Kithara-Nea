@@ -1,0 +1,58 @@
+{
+  "version": "8.1",
+  "platform": "windows-x64",
+  "license": "LGPL-2.1-or-later",
+  "options": [
+    "--target-os=mingw32",
+    "--arch=x86_64",
+    "--cc=gcc",
+    "--cxx=g++",
+    "--ar=ar",
+    "--nm=nm",
+    "--disable-autodetect",
+    "--disable-everything",
+    "--disable-gpl",
+    "--disable-nonfree",
+    "--disable-version3",
+    "--disable-network",
+    "--disable-doc",
+    "--disable-debug",
+    "--disable-ffplay",
+    "--disable-ffprobe",
+    "--disable-avdevice",
+    "--disable-swscale",
+    "--disable-shared",
+    "--enable-static",
+    "--enable-small",
+    "--enable-ffmpeg",
+    "--enable-avcodec",
+    "--enable-avformat",
+    "--enable-avfilter",
+    "--enable-swresample",
+    "--enable-protocol=file,pipe",
+    "--enable-decoder=aac,aac_latm,alac,mp3float,mp3adufloat,mp3on4float,mp2float,flac,vorbis,opus,wmav1,wmav2,wmapro,wmalossless,ape,wavpack,tta,pcm_*,adpcm_*",
+    "--enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le,pcm_s32le",
+    "--enable-parser=aac,aac_latm,mpegaudio,flac,vorbis,opus,ac3",
+    "--enable-demuxer=wav,aiff,mp3,flac,ogg,mov,aac,asf,ape,wv,tta,matroska,pcm_f32le,pcm_s16le",
+    "--enable-muxer=wav,pcm_f32le,pcm_s16le",
+    "--enable-filter=abuffer,abuffersink,anull,aformat,aresample,asetrate,atempo,atrim,asetpts,pan",
+    "--extra-cflags=-ffile-prefix-map=/build/kithara-nea=/src/kithara-nea"
+  ],
+  "diagnosticPathsRemapped": true,
+  "inputs": {
+    "ffmpeg-n8.1.zip": {
+      "url": "https://codeload.github.com/FFmpeg/FFmpeg/zip/refs/tags/n8.1",
+      "sha256": "58cb783a2b116244d23e5cf7b9b6f975cab13891b5976fb7b780b46b0e7b8fd6"
+    },
+    "w64devkit-x64-2.10.1.7z.exe": {
+      "url": "https://github.com/skeeto/w64devkit/releases/download/v2.10.1/w64devkit-x64-2.10.1.7z.exe",
+      "sha256": "add1edf984ce4d473cfeb7c52e0ab38db73a855bba6c7f564d5e16648eb2896a"
+    },
+    "nasm-2.16.03-win64.zip": {
+      "url": "https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/win64/nasm-2.16.03-win64.zip",
+      "sha256": "3ee4782247bcb874378d02f7eab4e294a84d3d15f3f6ee2de2f47a46aa7226e6"
+    }
+  },
+  "binarySha256": "4abb4c52103a09ee153cd28688262b812f7f8b88d4f108e7453233e7cf331a44",
+  "binaryBytes": 2354176
+}

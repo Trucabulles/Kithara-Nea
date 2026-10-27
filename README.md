@@ -3,7 +3,6 @@
 A Windows application for studying chords, following lyrics and preparing song sheets. Audio analysis runs locally; no account or cloud service is required.
 
 https://youtu.be/63XpK9sEHMg
-<iframe width="560" height="315" src="https://www.youtube.com/embed/63XpK9sEHMg?si=Q40lz7OzCaHxt9Wk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Download
 

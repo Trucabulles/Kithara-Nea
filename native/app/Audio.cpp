@@ -157,7 +157,35 @@ std::shared_ptr<AudioData> loadAudio(const File &file, Cancel cancel, int target
     formats.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> reader(formats.createReaderFor(file));
     std::unique_ptr<TempFolder> temporary;
-    if (!reader) {
+    std::vector<float> mono;
+    // Opening a compressed stream can succeed even when a later frame cannot be read.
+    // Discard any partial decode before retrying through the external decoder.
+    auto readAll = [&]() {
+        if (!reader)
+            return false;
+        require(reader->lengthInSamples > 0 && reader->lengthInSamples <= reader->sampleRate * 10800,
+                juce::String::fromUTF8("Audio vide ou durée supérieure à trois heures"));
+        mono.assign((size_t)reader->lengthInSamples, 0.f);
+        juce::AudioBuffer<float> buffer((int)reader->numChannels, 65536);
+        for (int64_t start = 0; start < reader->lengthInSamples; start += 65536) {
+            checkCancel(cancel);
+            int count = (int)std::min<int64_t>(65536, reader->lengthInSamples - start);
+            if (!reader->read(&buffer, 0, count, start, true, true))
+                return false;
+            for (int i = 0; i < count; ++i) {
+                float sum = 0;
+                for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+                    sum += buffer.getSample(ch, i);
+                float n = sum / std::max(1, buffer.getNumChannels());
+                mono[(size_t)start + i] = std::isfinite(n) ? n : 0;
+            }
+        }
+        return true;
+    };
+    if (!readAll()) {
+        checkCancel(cancel);
+        reader.reset();
+        mono.clear();
         temporary = std::make_unique<TempFolder>();
         auto wav = temporary->folder.getChildFile("decoded.wav");
         runProcess({resource("bin/ffmpeg.exe").getFullPathName(), "-v", "error", "-nostdin",
@@ -166,23 +194,8 @@ std::shared_ptr<AudioData> loadAudio(const File &file, Cancel cancel, int target
                     wav.getFullPathName()},
                    cancel);
         reader.reset(formats.createReaderFor(wav));
-    }
-    require(reader && reader->lengthInSamples > 0 && reader->lengthInSamples <= reader->sampleRate * 10800,
-            juce::String::fromUTF8("Audio vide ou durée supérieure à trois heures"));
-    std::vector<float> mono((size_t)reader->lengthInSamples);
-    juce::AudioBuffer<float> buffer((int)reader->numChannels, 65536);
-    for (int64_t start = 0; start < reader->lengthInSamples; start += 65536) {
-        checkCancel(cancel);
-        int count = (int)std::min<int64_t>(65536, reader->lengthInSamples - start);
-        require(reader->read(&buffer, 0, count, start, true, true),
+        require(readAll(),
                 juce::String::fromUTF8("Décodage audio impossible"));
-        for (int i = 0; i < count; ++i) {
-            float sum = 0;
-            for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
-                sum += buffer.getSample(ch, i);
-            float n = sum / std::max(1, buffer.getNumChannels());
-            mono[(size_t)start + i] = std::isfinite(n) ? n : 0;
-        }
     }
     auto result = std::make_shared<AudioData>();
     result->mono = resample(mono, (int)reader->sampleRate, targetRate);

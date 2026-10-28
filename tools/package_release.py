@@ -107,7 +107,7 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--input', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
-    ap.add_argument('--version', default='0.2.1')
+    ap.add_argument('--version', default='0.2.2')
     ap.add_argument('--iscc', type=Path)
     ap.add_argument('--compile-existing', action='store_true', help='Compile an already prepared payload')
     args=ap.parse_args()

@@ -4,7 +4,7 @@
 #ifndef ReleaseOutput
   #error Pass /DReleaseOutput=<release directory>
 #endif
-#define AppVersion "0.2.1"
+#define AppVersion "0.2.2"
 #ifndef LicenseRoot
   #error Pass /DLicenseRoot=<installer license directory>
 #endif

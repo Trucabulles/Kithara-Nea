@@ -1,4 +1,4 @@
-param([string]$Output = 'dist/releases/0.2.1', [string]$Python = 'python', [string]$Iscc = '', [switch]$SkipBuild)
+param([string]$Output = 'dist/releases/0.2.2', [string]$Python = 'python', [string]$Iscc = '', [switch]$SkipBuild)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 & $Python (Join-Path $PSScriptRoot 'prepare_audio_sources.py')

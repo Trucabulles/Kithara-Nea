@@ -38,7 +38,7 @@ class Application : public juce::JUCEApplication {
 
   public:
     const String getApplicationName() override { return juce::String::fromUTF8("KITHÁRA NÉA"); }
-    const String getApplicationVersion() override { return "0.2.1"; }
+    const String getApplicationVersion() override { return "0.2.2"; }
     bool moreThanOneInstanceAllowed() override { return true; }
     void initialise(const String &command) override {
         auto args = juce::StringArray::fromTokens(command, true);

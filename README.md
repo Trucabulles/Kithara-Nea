@@ -27,6 +27,22 @@ Small is bundled for lyric transcription. Thorough quality can download Medium, 
 
 Results are proposals to check by listening. Chord extensions, inversions, sung-word timing and rhythm can require correction. Exported accompaniment realizes recognized harmony; it does not reproduce the original performance note for note.
 
+## Accuracy and limitations
+
+Automatic chord recognition is an interpretation of the recording, not an infallible transcription. Musical ambiguity and recognition errors affect many chord-recognition systems. All models examined in our comparisons showed these recurring categories of limitations, although they handled individual passages differently:
+
+- **Melody and passing tones:** temporary notes can be mistaken for underlying harmony, introducing unnecessary extensions or chord changes.
+- **Extended chords:** genuine sixths, sevenths, ninths and other extensions can be omitted, simplified or misclassified, even when their characteristic notes are audible.
+- **Bass and inversions:** voicing, instrumentation, playing technique and spectral interference can lead to an incorrect bass or inversion label.
+- **Arpeggios and incomplete voicings:** notes played successively, muted or omitted can make the intended harmony difficult to determine.
+- **Complex arrangements:** overlapping instruments, harmonics and melodic lines can support several plausible interpretations.
+
+These limitations are shared across the models we have examined; they are not unique to Kithára Néa. Our comparisons are not a comprehensive benchmark of all available models. Missed extensions and inversions are not necessarily deliberate simplifications and remain areas for improvement.
+
+Accuracy depends on the recording, musical style, instrumentation, chord vocabulary and evaluation method. Dataset annotations may describe prescribed chords, performed notes or one harmonic interpretation; these do not always coincide. Agreement with a reference dataset must therefore not be confused with absolute musical accuracy.
+
+Kithára Néa does not claim perfect recognition or universal superiority over other systems. Results remain editable so musicians can review, correct and refine the proposed harmony against the recording.
+
 ## Development
 
 The application is C++17 with JUCE. LV-Chordia/ONNX performs harmonic analysis, Beat This small0 supplies rhythmic activations, whisper.cpp transcribes lyrics, FluidSynth renders sound and an audio-focused FFmpeg executable handles additional audio formats. Python is used by development tools only, never by the installed application.

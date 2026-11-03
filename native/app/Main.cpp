@@ -111,6 +111,11 @@ class Application : public juce::JUCEApplication {
                 quit();
                 return;
             }
+            if (args.size() >= 2 && args[0] == "--verify-playback-controls") {
+                window = std::make_unique<Window>(false);
+                verifyPlaybackControls(*static_cast<App *>(window->getContentComponent()), File(args[1]));
+                window.reset(); quit(); return;
+            }
             if (args.size() >= 2 && args[0] == "--verify-native") {
                 verifyNative(File(args[1]));
                 quit();

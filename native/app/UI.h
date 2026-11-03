@@ -414,6 +414,9 @@ class App : public juce::Component, private juce::Timer {
     void licenses();
     void shortcuts();
     void recordAudio();
+    juce::TextButton playbackRate;
+    void updatePlaybackRate();
+    void installPlayback(std::shared_ptr<AudioData>, double rate);
     void applyPlayback();
     void cancel();
     void requestClose(std::function<void()>);
@@ -431,6 +434,7 @@ class DataWindow : public CloseableDialog {
     ~DataWindow() override;
     bool keyPressed(const juce::KeyPress &) override;
 };
+J verifyPlaybackControls(App &, const File &);
 J verifyDisplay(App &, const File &);
 J verifyDialogs(App &, const File &);
 void verifySheetEditor(App &, const File &);

@@ -99,6 +99,26 @@ App::App(bool audioEnabled)
              &tracks,       &details,  &help,        &windowMin,    &windowMax, &windowClose})
         addAndMakeVisible(c);
     addAndMakeVisible(options);
+    addAndMakeVisible(playbackRate);
+    playbackRate.onClick = [this] {
+        if (!source || jobActive || audio.isRecording() || recordingDeadline > 0)
+            return;
+        juce::PopupMenu choices;
+        choices.setLookAndFeel(&theme);
+        double currentRate;
+        { juce::ScopedLock guard(audio.lock); currentRate = audio.timeFactor; }
+        for (int percent : {50, 75, 90, 100})
+            choices.addItem(percent, String(percent) + " %", true,
+                            std::abs(currentRate * 100 - percent) < .1);
+        choices.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(playbackRate),
+            [safe = safePointer()](int percent) {
+                if (safe && percent > 0 && !safe->jobActive) {
+                    safe->settings.speed.setValue(percent / 100., juce::dontSendNotification);
+                    safe->applyPlayback();
+                }
+            });
+    };
+    updatePlaybackRate();
     addAndMakeVisible(inputGainLabel);
     addAndMakeVisible(inputGain);
     inputGainLabel.setText(tr("Gain d’entrée"), juce::dontSendNotification);
@@ -386,7 +406,8 @@ void App::resized() {
     int right = settingsView.isVisible() ? 340 : 0;
     settingsView.setBounds(w - right + 4, 130, std::max(0, right - 12), h - 165);
     settings.setSize(std::max(280, settingsView.getMaximumVisibleWidth()), 1000);
-    details.setBounds(12, 948, settings.getWidth() - 24, 36);
+    settings.resized();
+    details.setBounds(12, settings.reportButton.getBottom() + 16, settings.getWidth() - 24, 36);
     int cw = w - right - 36;
     options.setBounds(18 + cw - 90, 133, 90, 30);
     clock.setBounds(x + 8, 133, cw < 800 ? 100 : 140, 32);
@@ -405,7 +426,8 @@ void App::resized() {
     inputGainLabel.setBounds(gainX, levelsY - 1, gainCaption, 24);
     inputGain.setBounds(gainX + gainCaption, levelsY - 2, gainWidth - gainCaption, 26);
     const int compactOffset = compactLevels ? 32 : 0;
-    device.setBounds(18, 171 + compactOffset, cw, 22);
+    device.setBounds(18, 171 + compactOffset, std::max(0, cw - 170), 22);
+    playbackRate.setBounds(18 + cw - 160, 169 + compactOffset, 160, 28);
     tracks.setBounds(18, 201 + compactOffset, 100, 30);
     filename.setBounds(132, 201 + compactOffset, std::max(50, cw - 490), 30);
     timeline.setSize(cw, timeline.getHeight());
@@ -453,6 +475,7 @@ void App::snapshot() {
     modified();
 }
 void App::refresh(bool preserveView) {
+    updatePlaybackRate();
     filling = true;
     settings.refresh();
     static juce::StringArray families = {"guitar", "piano", "ukulele", "bass", "mandolin", "banjo"};
@@ -496,6 +519,8 @@ void App::setLoaded(Document value, std::shared_ptr<AudioData> data, File file) 
     source = std::move(data);
     timeline.prepareWaveform();
     audio.setSource(source);
+    settings.speed.setValue(1., juce::dontSendNotification);
+    updatePlaybackRate();
     timeline.position = audio.seconds();
     project = file;
     history = {};
@@ -1361,50 +1386,53 @@ void App::recordAudio() {
         message(*this, tr("Enregistrement"), String::fromUTF8(e.what()));
     }
 }
+void App::updatePlaybackRate() {
+    double rate;
+    { juce::ScopedLock guard(audio.lock); rate = audio.timeFactor; }
+    playbackRate.setButtonText((isEnglish() ? "Speed: " : String::fromUTF8("Vitesse : ")) +
+                               String((int)std::round(rate * 100)) + " %");
+    playbackRate.setTooltip(isEnglish() ? "Playback speed — original pitch preserved"
+        : String::fromUTF8("Vitesse d’écoute — hauteur originale conservée"));
+}
+void App::installPlayback(std::shared_ptr<AudioData> data, double rate) {
+    // Seconds remain on the original project axis, including lyrics, loops and chords.
+    juce::ScopedLock guard(audio.lock);
+    const double seconds = audio.seconds();
+    const bool resume = audio.playing;
+    const auto savedLoop = audio.loop;
+    audio.setSource(std::move(data));
+    audio.timeFactor = rate;
+    audio.speed = 1.;
+    audio.loop = savedLoop;
+    audio.seek(seconds);
+    if (resume)
+        audio.play();
+    updatePlaybackRate();
+}
 void App::applyPlayback() {
-    if (!source || jobActive)
+    if (!source || jobActive || audio.isRecording() || recordingDeadline > 0)
         return;
-    double speed = settings.speed.getValue();
-    int semitones = doc.j.value("transpose", 0);
-    auto input = doc.audio();
-    auto current = doc;
-    runJob(
-        tr("Préparation de l’écoute"),
-        [input, current, speed, semitones](Cancel cancel) {
-            auto temp = std::make_shared<TempFolder>();
-            auto out = temp->folder.getChildFile("playback.wav");
-            double pitch = std::pow(2., semitones / 12.), tempo = speed / pitch;
-            String filters = "asetrate=" + String(16000 * pitch, 8) + ",aresample=16000";
-            while (tempo < .5) {
-                filters += ",atempo=0.5";
-                tempo /= .5;
-            }
-            while (tempo > 2) {
-                filters += ",atempo=2";
-                tempo /= 2;
-            }
-            filters += ",atempo=" + String(tempo, 8);
-            auto original = loadAudio(input, cancel);
-            auto wav = temp->folder.getChildFile("source.wav");
+    const double rate = settings.speed.getValue();
+    if (std::abs(rate - 1.) < .0001) {
+        installPlayback(source, 1.);
+        return;
+    }
+    auto original = source;
+    runJob(tr("Préparation de l’écoute"),
+        [original, rate](Cancel cancel) {
+            TempFolder temp;
+            auto wav = temp.folder.getChildFile("source.wav");
+            auto out = temp.folder.getChildFile("playback.wav");
             saveWave(wav, original->mono, 16000);
             runProcess({resource("bin/ffmpeg.exe").getFullPathName(), "-v", "error", "-nostdin",
-                        "-protocol_whitelist", "file,pipe", "-i", wav.getFullPathName(), "-af", filters, "-y",
-                        out.getFullPathName()},
-                       cancel);
-            JobResult r;
-            r.audio = loadAudio(out, cancel);
-            r.payload = {{"factor", speed}};
-            return r;
+                        "-protocol_whitelist", "file,pipe", "-i", wav.getFullPathName(), "-af",
+                        "atempo=" + String(rate, 8), "-y", out.getFullPathName()}, cancel);
+            JobResult result;
+            result.audio = loadAudio(out, cancel);
+            return result;
         },
-        [this, speed](JobResult r) {
-            auto position = audio.seconds();
-            audio.setSource(r.audio);
-            {
-                juce::ScopedLock guard(audio.lock);
-                audio.speed = 1;
-                audio.timeFactor = speed;
-            }
-            audio.seek(position);
+        [this, rate](JobResult result) {
+            installPlayback(result.audio, rate);
             setStatus(tr("Réglages appliqués à l’écoute"));
         });
 }

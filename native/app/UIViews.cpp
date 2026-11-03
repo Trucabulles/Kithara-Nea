@@ -360,6 +360,9 @@ void Timeline::zoom(double factor, double anchor) {
     repaint();
 }
 String Timeline::hintText() const {
+    if (lyricsVisible && !audioVisible && !chordsVisible)
+        return isEnglish() ? "Wheel: previous / next phrase · Click a word: seek"
+                           : String::fromUTF8("Molette : phrase précédente / suivante · Clic sur un mot : rejoindre");
     return tr("Molette : zoom · Clic molette : déplacer · Maj + glisser : boucle · Horodatages : Édition des "
               "données");
 }
@@ -760,7 +763,20 @@ void Timeline::mouseUp(const juce::MouseEvent &e) {
     drag.clear();
 }
 void Timeline::mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &wheel) {
-    zoom(wheel.deltaY > 0 ? .8 : 1.25, time(e.position.x));
+    if (lyricsVisible && !audioVisible && !chordsVisible) {
+        if (wheel.deltaY == 0 || wheel.isInertial || app.doc.lyrics().empty())
+            return;
+        const auto &cues = app.doc.lyrics();
+        int current = -1;
+        for (int i = 0; i < (int)cues.size(); ++i)
+            if (cues[(size_t)i].at("start").get<double>() <= position + .001)
+                current = i;
+        const int target = std::clamp(current + (wheel.deltaY < 0 ? 1 : -1), 0, (int)cues.size() - 1);
+        app.seek(cues[(size_t)target].at("start").get<double>());
+        return;
+    }
+    if (wheel.deltaY != 0)
+        zoom(wheel.deltaY > 0 ? .8 : 1.25, time(e.position.x));
 }
 void Timeline::mouseDoubleClick(const juce::MouseEvent &e) {
     if (e.position.x < 55) {
@@ -1147,7 +1163,7 @@ SettingsPanel::SettingsPanel(App &a) : app(a) {
     numeric(capo, 0, 12, 1);
     numeric(bpm, 0, 400, .1);
     numeric(meter, 2, 12, 1);
-    numeric(speed, .5, 2, .1);
+    numeric(speed, .5, 1, .05);
     speed.onValueChange = {};
     speed.setValue(1, juce::dontSendNotification);
     caption("Transposition", transpose);

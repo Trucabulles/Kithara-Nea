@@ -2491,7 +2491,7 @@ J verifyNative(const File &output) {
         app.setLoaded(longDoc, originalAudio);
         app.timeline.span = 30;
         auto wheelEvent = eventFor(app.timeline, {300, 100}, 1);
-        juce::MouseWheelDetails wheel;
+        juce::MouseWheelDetails wheel{};
         wheel.deltaY = -.1f;
         app.timeline.mouseWheelMove(wheelEvent, wheel);
         check("Molette dezoom elargit le temps visible", app.timeline.span > 30);
@@ -2584,6 +2584,103 @@ J verifyNative(const File &output) {
     }
     J report = {{"passed", true}, {"count", checks.size()}, {"checks", checks}, {"python_runtime", false}};
     writeJson(output.getChildFile("checks.json"), report);
+    return report;
+}
+
+J verifyPlaybackControls(App &app, const File &output) {
+    output.createDirectory();
+    J checks = J::array();
+    auto check = [&](const char *name, bool ok) {
+        require(ok, String("Playback check failed: ") + name);
+        checks.push_back(name);
+    };
+    auto data = std::make_shared<AudioData>();
+    data->mono.resize(12 * 16000);
+    for (size_t n = 0; n < data->mono.size(); ++n)
+        data->mono[n] = .2f * std::sin(2. * juce::MathConstants<double>::pi * 440. * n / 16000.);
+    Document doc;
+    doc.j["duration"] = 12.;
+    doc.chords().push_back({{"start",0.},{"end",12.},{"name","Am"},{"notes",{57,60,64}}});
+    for (double start : {0.,4.,8.})
+        doc.lyrics().push_back({{"start",start},{"end",start+2.},{"text","First second"},
+            {"words",J::array({{{"start",start},{"end",start+1.},{"offset",0},{"text","First"}},
+                              {{"start",start+1.},{"end",start+2.},{"offset",6},{"text","second"}}})}});
+    app.setLoaded(doc,data);
+    app.timeline.audioVisible = false;
+    app.timeline.chordsVisible = false;
+    app.timeline.lyricsVisible = true;
+    const auto protectedDocument = app.doc.j;
+    const auto span = app.timeline.span;
+    juce::MouseEvent e(juce::Desktop::getInstance().getMainMouseSource(), {100,100}, {}, 1.f, 0.f, 0.f, 0.f, 0.f,
+        &app.timeline, &app.timeline, juce::Time::getCurrentTime(), {100,100},
+        juce::Time::getCurrentTime(), 1, false);
+    juce::MouseWheelDetails wheel{};
+    wheel.deltaY = -.1f;
+    app.timeline.mouseWheelMove(e,wheel);
+    check("Lyrics wheel seeks next phrase without zoom", std::abs(app.audio.seconds()-4.)<1e-8 && app.timeline.span==span);
+    wheel.deltaY = .1f;
+    app.timeline.mouseWheelMove(e,wheel);
+    check("Lyrics wheel seeks previous phrase", app.audio.seconds()==0.);
+    app.seek(9.);
+    wheel.deltaY = -.1f;
+    app.timeline.mouseWheelMove(e,wheel);
+    check("Lyrics wheel stays within last phrase", app.audio.seconds()==8.);
+    check("Lyrics wheel preserves paused state and document", !app.audio.playing && app.doc.j==protectedDocument);
+    app.seek(4.);
+    app.audio.play();
+    app.timeline.mouseWheelMove(e,wheel);
+    check("Lyrics wheel preserves playback", app.audio.playing && app.audio.seconds()==8.);
+    app.seek(1.25);
+    app.audio.loop = {{1.,10.}};
+    app.settings.speed.setValue(.75,juce::dontSendNotification);
+    app.applyPlayback();
+    const double deadline = juce::Time::getMillisecondCounterHiRes()+30000;
+    while(app.jobActive && juce::Time::getMillisecondCounterHiRes()<deadline)
+        juce::MessageManager::getInstance()->runDispatchLoopUntil(10);
+    check("Slow playback preparation completes", !app.jobActive && app.audio.timeFactor==.75);
+    check("Slow playback preserves position and playing state", std::abs(app.audio.seconds()-1.25)<1e-8 && app.audio.playing);
+    check("Slow playback preserves loop", app.audio.loop && app.audio.loop->first==1. && app.audio.loop->second==10.);
+    const auto slowed = app.audio.source;
+    check("Slow playback length corresponds to 75 percent", std::abs(slowed->seconds()-16.)<.15);
+    int crossings=0;
+    for(size_t n=16001;n<48000;++n)
+        crossings += slowed->mono[n-1]<=0 && slowed->mono[n]>0;
+    check("Slow playback preserves 440 Hz pitch", std::abs(crossings/2.-440.)<3.);
+    check("Playback leaves analysis and original waveform untouched", app.doc.j==protectedDocument && app.source==data);
+    app.timeline.refreshPlayback(app.audio.seconds());
+    check("Display stays on original seconds while slowed", std::abs(app.timeline.position-1.25)<1e-8);
+    wheel.deltaY = -.1f;
+    app.timeline.mouseWheelMove(e,wheel);
+    check("Phrase navigation respects slowed source time", app.audio.seconds()==4. && app.audio.timeFactor==.75);
+    app.audio.pause();
+    app.settings.speed.setValue(1.,juce::dontSendNotification);
+    app.applyPlayback();
+    check("Normal rate restores original audio without seeking or resuming", app.audio.source==data && app.audio.timeFactor==1. && app.audio.seconds()==4. && !app.audio.playing);
+    app.timeline.audioVisible = true;
+    app.timeline.mouseWheelMove(e,wheel);
+    check("Wheel still zooms in waveform views", app.timeline.span!=span);
+    for (const auto size : {juce::Point<int>(1400,940),juce::Point<int>(1000,780)}) {
+        app.setSize(size.x,size.y);
+        check("Speed control fits the playback row", app.getLocalBounds().contains(app.playbackRate.getBounds()) && !app.playbackRate.getBounds().intersects(app.device.getBounds()));
+        auto image = app.createComponentSnapshot(app.getLocalBounds());
+        juce::PNGImageFormat png;
+        auto stream=output.getChildFile("controls-"+String(size.x)+".png").createOutputStream();
+        stream->setPosition(0);stream->truncate();png.writeImageToStream(image,*stream);
+    }
+    check("Display anticipates by the validated 60 ms", std::abs(lyricDisplayTime(1.)-1.06)<1e-8);
+    check("Normal word highlights before onset", activeLyricWord(app.doc.lyrics()[0],.95)==1);
+    check("Completed final word does not retain lyrics", activeLyricCue(app.doc.lyrics(),10.)==-1);
+    check("Edit data stays below review alignment", app.details.getY()>=app.settings.reportButton.getBottom()+12);
+    check("Edit data remains inside scrollable panel", app.settings.getLocalBounds().contains(app.details.getBounds()));
+    app.settingsView.setViewPosition(0,app.details.getBottom());
+    app.setLanguage(false);
+    auto footerImage=app.createComponentSnapshot(app.getLocalBounds());
+    juce::PNGImageFormat footerPng;
+    auto footerStream=output.getChildFile("settings-footer.png").createOutputStream();
+    footerStream->setPosition(0);footerStream->truncate();footerPng.writeImageToStream(footerImage,*footerStream);
+    app.dirty=false;
+    J report={{"checks",checks},{"passed",checks.size()}};
+    writeJson(output.getChildFile("checks.json"),report);
     return report;
 }
 } // namespace kn

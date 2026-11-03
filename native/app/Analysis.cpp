@@ -475,6 +475,8 @@ J transcribe(const AudioData &audio, String model, String language, Cancel cance
                               "-pp",
                               "-t",
                               String(analysisCpuThreads())};
+    if (model == "small")
+        command.add("-sns");
     if (dtw)
         command.addArray({"-dtw", model, "-nfa"});
     command.add("-ng");

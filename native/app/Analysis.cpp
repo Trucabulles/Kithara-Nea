@@ -4,7 +4,7 @@
 #include "onnxruntime_cxx_api.h"
 #include <complex>
 namespace kn {
-Document analyseHarmony(const Document &original, Theory &theory, Cancel cancel, Progress progress) {
+Document analyseHarmony(const Document &original, Theory &theory, Cancel cancel, Progress progress, bool btc) {
     checkCancel(cancel);
     TempFolder temporary;
     auto folder = resource("lv_chordia_native");
@@ -35,7 +35,12 @@ Document analyseHarmony(const Document &original, Theory &theory, Cancel cancel,
     double analysedDuration = originalReader->lengthInSamples / originalReader->sampleRate;
     if (progress)
         progress(.08, "Analyse spectrale");
-    runProcess(
+    if (btc)
+        runProcess({folder.getChildFile("kithara-lv-native.exe").getFullPathName(), "--btc",
+                    wav.getFullPathName(), output.getFullPathName(),
+                    folder.getChildFile("btc/cqt.json").getFullPathName(),
+                    folder.getChildFile("btc/btc230.onnx").getFullPathName()}, cancel, progress);
+    else runProcess(
         {folder.getChildFile("kithara-lv-native.exe").getFullPathName(), "--audio", wav.getFullPathName(),
          output.getFullPathName(), folder.getChildFile("assets").getFullPathName(),
          folder.getChildFile("models").getFullPathName()},
@@ -50,7 +55,8 @@ Document analyseHarmony(const Document &original, Theory &theory, Cancel cancel,
         {"maj", ""},      {"min", "m"},         {"maj7", "M7"},    {"maj9", "M9"}, {"min7", "m7"},
         {"min9", "m9"},   {"7", "7"},           {"9", "9"},        {"11", "11"},   {"13", "13"},
         {"dim", "dim"},   {"dim7", "dim7"},     {"hdim7", "m7b5"}, {"aug", "aug"}, {"sus2", "sus2"},
-        {"sus4", "sus4"}, {"sus4(b7)", "7sus4"}};
+        {"sus4", "sus4"}, {"sus4(b7)", "7sus4"}, {"maj6", "6"}, {"min6", "m6"},
+        {"minmaj7", "mM7"}, {"maj(9)", "add9"}, {"min(9)", "madd9"}};
     double previous = 0;
     for (auto &row : raw) {
         checkCancel(cancel);
@@ -83,13 +89,13 @@ Document analyseHarmony(const Document &original, Theory &theory, Cancel cancel,
                                    {"bass", utf(bass)},
                                    {"confidence", 0.},
                                    {"notes", theory.notes(name, bass)},
-                                   {"source", "LV-Chordia"}});
+                                   {"source", btc ? "BTC 230" : "LV-Chordia"}});
     }
     if (!result.chords().empty()) {
         result.chords().front()["start"] = 0.;
         result.chords().back()["end"] = analysedDuration;
     }
-    result.j["model"] = "LVChordia";
+    result.j["model"] = btc ? "BTC-230" : "LVChordia";
     result.j["key"] = utf(theory.key(result));
     result.j["provenance"] = "Analyse harmonique native C++/ONNX.";
     if (progress)

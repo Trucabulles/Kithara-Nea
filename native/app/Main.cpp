@@ -183,7 +183,7 @@ class Application : public juce::JUCEApplication {
                 input.j["audio"] = utf(File(args[1]).getFullPathName());
                 input.j["duration"] = data->seconds();
                 Theory theory;
-                auto result = analyseHarmony(input, theory, {}, {});
+                auto result = analyseHarmony(input, theory, {}, {}, args.size() > 3 && args[3] == "btc");
                 analyseBeats(result, *data, {}, {});
                 writeJson(File(args[2]), result.j);
                 quit();

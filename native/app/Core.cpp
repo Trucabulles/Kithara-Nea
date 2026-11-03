@@ -893,12 +893,22 @@ std::vector<std::vector<int>> Theory::positions(String name, String tuning, int 
     std::sort(candidates.begin(), candidates.end());
     std::set<std::vector<int>> seen;
     std::vector<std::vector<int>> result;
-    for (auto &c : candidates)
-        if (seen.insert(c.second).second) {
-            result.push_back(c.second);
-            if ((int)result.size() >= limit)
-                break;
+    // Prefer the familiar E-shape barre for A-flat major on standard guitar.
+    if (limit > 0 && pitch(name) == 8 && wanted == std::set<int>{0, 3, 8} &&
+        strings == std::vector<int>{40 + capo, 45 + capo, 50 + capo, 55 + capo, 59 + capo, 64 + capo}) {
+        const int fret = (4 - capo % 12 + 12) % 12;
+        if (fret > 0 && fret <= 7) {
+            std::vector<int> barre{fret, fret + 2, fret + 2, fret + 1, fret, fret};
+            seen.insert(barre);
+            result.push_back(std::move(barre));
         }
+    }
+    for (auto &c : candidates) {
+        if ((int)result.size() >= limit)
+            break;
+        if (seen.insert(c.second).second)
+            result.push_back(c.second);
+    }
     if (cache.size() > 512)
         cache.clear();
     cache[key] = result;

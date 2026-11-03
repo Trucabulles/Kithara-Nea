@@ -1145,6 +1145,10 @@ void SettingsPanel::caption(String value, juce::Component &control) {
     addAndMakeVisible(control);
 }
 SettingsPanel::SettingsPanel(App &a) : app(a) {
+    addAndMakeVisible(harmonyEngine);
+    harmonyEngine.addItem("BTC 230", 1);
+    harmonyEngine.addItem("LV-Chordia", 2);
+    harmonyEngine.setSelectedId(1, juce::dontSendNotification);
     addAndMakeVisible(beats);
     beats.setToggleState(true, juce::dontSendNotification);
     auto numeric = [&](juce::Slider &slider, double low, double high, double step) {
@@ -1316,7 +1320,8 @@ void SettingsPanel::refresh() {
 }
 void SettingsPanel::resized() {
     int width = getWidth() - 24;
-    beats.setBounds(12, 35, width, 30);
+    harmonyEngine.setBounds(12, 35, width, 30);
+    beats.setBounds(12, 72, width, 30);
     std::array<std::pair<juce::Component *, int>, 6> rows = {
         {{&transpose, 148}, {&capo, 258}, {&bpm, 438}, {&signature, 480}, {&tuning, 348}, {&quality, 642}}};
     std::array<int, 6> indices = {0, 1, 2, 3, 4, 6};
@@ -1348,8 +1353,6 @@ void SettingsPanel::paint(juce::Graphics &g) {
     g.drawText("Positions", 12, 314, getWidth() - 24, 26, juce::Justification::left);
     g.drawText(tr("Indications rythmiques"), 12, 404, getWidth() - 24, 26, juce::Justification::left);
     g.setFont(juce::FontOptions(16));
-    g.drawFittedText(tr("Analyse locale des accords et de leurs renversements."), 12, 68, getWidth() - 24, 36,
-                     juce::Justification::left, 2, 1.f);
     g.drawFittedText(tr("Traitement local et hors ligne. Vérifier le calage sur le chant."), 12, 780,
                      getWidth() - 24, 44, juce::Justification::left, 2, 1.f);
 }

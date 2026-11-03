@@ -1159,12 +1159,13 @@ void App::startChordAnalysis() {
     auto current = doc;
     auto data = source;
     bool beats = settings.beats.getToggleState();
+    const bool btc = settings.harmonyEngine.getSelectedId() == 1;
     audio.pause();
     runJob(
         tr("Analyse en cours"),
-        [this, current, data, beats](Cancel cancel) {
+        [this, current, data, beats, btc](Cancel cancel) {
             JobResult r;
-            r.document = analyseHarmony(current, theory, cancel, {});
+            r.document = analyseHarmony(current, theory, cancel, {}, btc);
             if (beats)
                 analyseBeats(*r.document, *data, cancel, {});
             r.audio = data;

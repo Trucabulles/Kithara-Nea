@@ -128,6 +128,89 @@ Matrix cqt(const std::vector<float>& y,const fs::path& assets,int& tuning){
  }
  output.data.resize(output.frames*288);return output;
 }
+Matrix btcFeatures(const std::vector<float>& y,const json& bank){
+
+ Matrix output;output.frames=1+y.size()/2048;output.cols=144;output.data.resize(output.frames*144);
+ std::map<int,std::vector<float>> rates;rates[1]=y;
+ for(auto& stage:bank["stages"]){int factor=stage["factor"],n=stage["n_fft"],hop=stage["hop"],begin=stage["begin"];const bool phase=true;
+  if(!rates.count(factor)){int previous=1;for(auto& pair:rates)if(pair.first<factor)previous=pair.first;
+   rates[factor]=resample(rates.at(previous),double(factor)/previous,1,true);}
+  auto& signal=rates.at(factor);output.frames=std::min(output.frames,1+signal.size()/hop);
+  struct Coeff{int index;std::complex<float> value;};struct Row{double scale;std::vector<Coeff> coefficients;};std::vector<Row> rows;
+  for(auto& r:stage["rows"]){Row row;row.scale=r["scale"];for(auto& e:r["entries"])row.coefficients.push_back({e[0],{e[1].get<float>(),e[2].get<float>()}});rows.push_back(std::move(row));}
+  for(size_t t=0;t<output.frames;++t){auto spec=spectrum(signal,t*hop,n,!phase);
+   if(!phase)for(auto& v:spec)v={std::abs(v),0};
+   for(size_t b=0;b<rows.size();++b){std::complex<float> sum=0;for(auto& e:rows[b].coefficients)sum+=spec[e.index]*e.value;
+    // Full CQT divides the complex response by sqrt(length) before abs.
+    auto normalized=std::complex<float>(float(sum.real()*rows[b].scale),float(sum.imag()*rows[b].scale));
+    output.data[t*144+begin+b]=phase?std::abs(normalized):float(sum.real()*rows[b].scale);}
+  }
+ }
+ output.data.resize(output.frames*144);
+ const float mean=bank["mean"],stddev=bank["std"];
+ for(auto& value:output.data)value=(std::log(value+1.e-6f)-mean)/stddev;
+ return output;
+}
+
+json analyseBtc(const Audio& audio,const json& bank,const fs::path& model){
+ const auto signal=resample(audio.samples,audio.rate,22050,false);
+ const double duration=double(audio.samples.size())/audio.rate;
+ constexpr size_t classes=230, window=108, bins=144, samples=220500;
+ const auto labels=bank.at("labels").get<std::vector<std::string>>();
+ if(labels.size()!=classes)throw std::runtime_error("Invalid BTC labels");
+ Ort::Env env(ORT_LOGGING_LEVEL_WARNING,"kithara-btc");
+ Ort::SessionOptions options;
+ options.SetIntraOpNumThreads(kn::analysisCpuThreads());
+ options.SetInterOpNumThreads(1);
+ Ort::Session session(env,model.c_str(),options);
+ auto memory=Ort::MemoryInfo::CreateCpu(OrtArenaAllocator,OrtMemTypeDefault);
+ const int64_t dims[]={1,window,bins};
+ const char* inputs[]={"cqt"};const char* outputs[]={"scores"};
+ std::vector<double> times;
+ std::vector<float> probabilities,features;
+ for(size_t start=0;start<signal.size();start+=samples){
+  auto end=std::min(start+samples,signal.size());
+  auto block=btcFeatures(std::vector<float>(signal.begin()+start,signal.begin()+end),bank);
+  for(size_t frame=0;frame<block.frames;++frame)
+   times.push_back(double(start)/22050.+double(frame)*10./window);
+  features.insert(features.end(),block.data.begin(),block.data.end());
+ }
+ if(times.empty())throw std::runtime_error("Empty BTC input");
+ for(size_t start=0;start<times.size();start+=window){
+  const auto valid=std::min(window,times.size()-start);
+  std::vector<float> padded(window*bins);
+  std::copy_n(features.data()+start*bins,valid*bins,padded.data());
+  auto input=Ort::Value::CreateTensor<float>(memory,padded.data(),padded.size(),dims,3);
+  auto result=session.Run(Ort::RunOptions{nullptr},inputs,&input,1,outputs,1);
+  if(result[0].GetTensorTypeAndShapeInfo().GetElementCount()!=window*classes)
+   throw std::runtime_error("Invalid BTC output");
+  auto scores=result[0].GetTensorData<float>();
+  probabilities.insert(probabilities.end(),scores,scores+valid*classes);
+ }
+ std::array<double,classes> prior{},next{};
+ std::vector<uint16_t> back(times.size()*classes);
+ for(size_t t=0;t<times.size();++t){
+  auto best=std::max_element(prior.begin(),prior.end())-prior.begin();
+  for(size_t c=0;c<classes;++c){
+   bool change=t&&prior[best]-.55>prior[c];
+   back[t*classes+c]=uint16_t(change?best:c);
+   next[c]=std::log(std::max(double(probabilities[t*classes+c]),1.e-30))+(change?prior[best]-.55:prior[c]);
+  }
+  prior=next;
+ }
+ std::vector<uint16_t> path(times.size());
+ path.back()=uint16_t(std::max_element(prior.begin(),prior.end())-prior.begin());
+ for(size_t t=times.size()-1;t>0;--t)path[t-1]=back[t*classes+path[t]];
+ json rows=json::array();
+ for(size_t begin=0,end=1;end<=times.size();++end){
+  if(end<times.size()&&path[end]==path[begin])continue;
+  auto a=std::min(duration,times[begin]),b=end<times.size()?std::min(duration,times[end]):duration;
+  const auto& label=labels[path[begin]];
+  if(b>a)rows.push_back({{"start_time",a},{"end_time",b},{"chord",label=="X"?"N":label}});
+  begin=end;
+ }
+ return rows;
+}
 struct Segment{double start,end;std::string name;};
 using Probabilities=std::array<Matrix,6>;
 std::vector<Segment> decode(const Probabilities& probs,const fs::path& assets){
@@ -166,6 +249,17 @@ Probabilities infer(Matrix& features,const fs::path& models){
 int wmain(int argc,wchar_t** argv){try{
  if(argc<5){std::cerr<<"Usage: kithara-lv-native --audio|--cqt|--features input output assets [models]\n";return 2;}
  fs::path input=argv[2],output=argv[3],assets=argv[4];std::wstring mode=argv[1];auto start=Clock::now();Matrix features;int tuning=-1;double cqt_seconds=0;
+ if(mode==L"--btc-cqt"){save_npy(output,btcFeatures(read_wav(input).samples,read_json(assets)));return 0;}
+ if(mode==L"--btc"){
+  if(argc!=6)throw std::runtime_error("BTC model required");
+  auto library=LoadLibraryW(L"onnxruntime.dll");
+  if(!library)throw std::runtime_error("Cannot load native onnxruntime.dll");
+  auto api=reinterpret_cast<const OrtApiBase*(ORT_API_CALL*)()>(GetProcAddress(library,"OrtGetApiBase"));
+  if(!api)throw std::runtime_error("Missing OrtGetApiBase");
+  Ort::InitApi(api()->GetApi(ORT_API_VERSION));
+  write_json(output,analyseBtc(read_wav(input),read_json(assets),fs::path(argv[5])));
+  return 0;
+ }
  if(mode==L"--features")features=load_npy(input);
  else if(mode==L"--audio"||mode==L"--cqt"){auto audio=read_wav(input);auto y=resample(audio.samples,audio.rate,22050,false);features=cqt(y,assets,tuning);cqt_seconds=elapsed(start);}
  else throw std::runtime_error("Unknown mode");

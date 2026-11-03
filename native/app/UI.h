@@ -241,6 +241,7 @@ class SettingsPanel : public juce::Component {
     void caption(String, juce::Component &);
 
   public:
+    juce::ComboBox harmonyEngine;
     juce::ToggleButton beats{tr("Repérer les pulsations et le tempo")};
     juce::Slider transpose, capo, bpm, meter, speed;
     juce::ComboBox signature;

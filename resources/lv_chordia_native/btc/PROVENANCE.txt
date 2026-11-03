@@ -1,0 +1,4 @@
+BTC-ISMIR19 by Jonggwon Park, MIT: https://github.com/jayg996/BTC-ISMIR19
+Checkpoint: KN BTC230 guitar-context experiment, SHA-256 1e170ea7a30fe1867ffd171a9ff31d2499d453a9b76ecd3cd42e8ea5ad9529f0.
+Training sources: GuitarSet, TinyAAM, Jazznet (CC BY 4.0), and generated MIDI rendered with CC0 FreePats banks.
+CQT filter coefficients generated with librosa (ISC).

@@ -177,7 +177,7 @@ void estimateMeter(Document &);
 void estimateRhythmActivations(Document &, const std::vector<float> &, const std::vector<float> &,
                                Cancel = {});
 std::vector<float> beatFeatures(const AudioData &, Cancel);
-Document analyseHarmony(const Document &, Theory &, Cancel, Progress);
+Document analyseHarmony(const Document &, Theory &, Cancel, Progress, bool btc = false);
 File whisperModelFile(String);
 bool whisperModelAvailable(String);
 File downloadWhisperMedium(Cancel, Progress);

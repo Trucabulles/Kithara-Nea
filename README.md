@@ -4,6 +4,16 @@ A Windows application for studying chords, following lyrics and preparing song s
 
 https://youtu.be/63XpK9sEHMg
 
+**Kithára Néa provides a chord transcription that you can check by ear and edit.**
+
+Neural chord recognition generally works better on simple chords. It becomes less reliable when two chords differ by a single note, as with a seventh chord and its corresponding ninth. Depending on the performance and arrangement, that note may be played softly, masked by another instrument, or confused with a passing note.
+
+Overtones and lingering resonance from earlier notes can also be mistaken for notes in the current chord. As a result, the transcription may miss an extension, add one that was not played, or place a chord change too early or too late.
+
+These limitations were common to every chord recognition system we tested. When we checked the transcriptions against the recordings, we found both spurious chord changes and missed extensions, including sixths and sevenths. The errors varied by song and by system.
+
+Kithára Néa ships with fine-tuned weights derived from the original checkpoint published in the MIT-licensed [BTC-ISMIR19 repository](https://github.com/jayg996/BTC-ISMIR19). In our tests, the fine-tuned weights improved chord recognition on some recordings compared with the original weights. Kithára Néa also includes the LV-Chordia weights as an alternative. In our tests, LV-Chordia was most reliable on simpler chords and less consistent on extensions.
+
 ## Download
 
 Get the Windows x64 installer or portable ZIP from [Releases](https://github.com/Trucabulles/Kithara-Nea/releases). Windows 10 or later and an AVX2-capable x64 CPU are required for the bundled lyric decoder. A Vulkan-compatible GPU is optional; CPU processing remains available.

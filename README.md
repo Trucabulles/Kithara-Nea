@@ -45,7 +45,7 @@ Kithára Néa does not claim perfect recognition or universal superiority over o
 
 ## Development
 
-The application is C++17 with JUCE. LV-Chordia/ONNX performs harmonic analysis, Beat This small0 supplies rhythmic activations, whisper.cpp transcribes lyrics, FluidSynth renders sound and an audio-focused FFmpeg executable handles additional audio formats. Python is used by development tools only, never by the installed application.
+The application is C++17 with JUCE. BTC 230 performs harmonic analysis by default, with LV-Chordia available as an alternative, Beat This small0 supplies rhythmic activations, whisper.cpp transcribes lyrics, FluidSynth renders sound and an audio-focused FFmpeg executable handles additional audio formats. Python is used by development tools only, never by the installed application.
 
 See [BUILDING.md](BUILDING.md) for the environment, verified runtime resources, compilation, checks and packaging. [FORMAT-KNEA.md](FORMAT-KNEA.md) describes the project container. User manual sources are in `documentation/`.
 

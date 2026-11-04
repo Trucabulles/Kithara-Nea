@@ -46,3 +46,7 @@ resources/notices/JUCE-LICENSE.md
 
 # No repository sponsorship configuration.
 /.github/FUNDING.yml
+
+# BTC runtime model and generated CQT bank are fetched from the pinned release.
+resources/lv_chordia_native/btc/*.onnx
+resources/lv_chordia_native/btc/cqt.json

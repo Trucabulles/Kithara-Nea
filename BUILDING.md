@@ -20,7 +20,7 @@ python tools/fetch_runtime.py
 For offline development, supply the matching portable archive:
 
 ```powershell
-python tools/fetch_runtime.py --archive C:/Downloads/kithara-nea-0.2.1-windows-x64-portable.zip
+python tools/fetch_runtime.py --archive C:/Downloads/kithara-nea-0.2.4-windows-x64-portable.zip
 ```
 
 The script verifies the archive and every component before copying resources. It never runs the downloaded application. Use the pinned version; other releases may have incompatible manifests. Small is included; Medium is not needed for building.
@@ -57,13 +57,13 @@ Inspect `checks.json` for `passed: true`. Fixtures are in `resources/native-test
 ## End-user packages
 
 ```powershell
-./tools/build_release.ps1 -Output dist/releases/0.2.1
+./tools/build_release.ps1 -Output dist/releases/0.2.4
 ```
 
 To build an installer too:
 
 ```powershell
-./tools/build_release.ps1 -Output dist/releases/0.2.1-with-setup -Iscc 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
+./tools/build_release.ps1 -Output dist/releases/0.2.4-with-setup -Iscc 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
 ```
 
 Use a new, empty output folder. This builds, stages the DTW components and creates a strict portable ZIP. The optional installer offers English/French, presents the corresponding license and seeds the first-run language. Current-user mode needs no elevation; all-users mode requests administrator access and uses Program Files. An unprivileged attempt to use Program Files is rejected with an explanatory message. Existing preferences take priority. `portable.flag` selects adjacent `data` storage instead of the installed user profile.

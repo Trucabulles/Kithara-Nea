@@ -1,4 +1,6 @@
-BTC-ISMIR19 by Jonggwon Park, MIT: https://github.com/jayg996/BTC-ISMIR19
-Checkpoint: KN BTC230 guitar-context experiment, SHA-256 1e170ea7a30fe1867ffd171a9ff31d2499d453a9b76ecd3cd42e8ea5ad9529f0.
-Training sources: GuitarSet, TinyAAM, Jazznet (CC BY 4.0), and generated MIDI rendered with CC0 FreePats banks.
+BTC-ISMIR19 implementation by Jonggwon Park, MIT: https://github.com/jayg996/BTC-ISMIR19
+KITHARA NEA BTC230 inference model, revision 0.2.4.
+Checkpoint SHA-256: 2c522e69e1dd7b3f7fbe3d9e4e5f24b43f760d0616c31e1c6ec19a71e1860df1
+ONNX SHA-256: 877693e1ec2a8d5750678561af7e14742ca8342f422074905df1f90c0eff51d3
+Input: normalized CQT [1, 108, 144]. Output: 230 chord-state scores.
 CQT filter coefficients generated with librosa (ISC).

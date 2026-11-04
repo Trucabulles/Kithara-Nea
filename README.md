@@ -14,6 +14,8 @@ These limitations were common to every chord recognition system we tested. When 
 
 Kithára Néa ships with fine-tuned weights derived from the original checkpoint published in the MIT-licensed [BTC-ISMIR19 repository](https://github.com/jayg996/BTC-ISMIR19). In our tests, the fine-tuned weights improved chord recognition on some recordings compared with the original weights. Kithára Néa also includes the LV-Chordia weights as an alternative. In our tests, LV-Chordia was most reliable on simpler chords and less consistent on extensions.
 
+Both recognition engines are available in the analysis settings. You can choose BTC 230 or LV-Chordia for each analysis. BTC 230 is selected by default.
+
 ## Download
 
 Get the Windows x64 installer or portable ZIP from [Releases](https://github.com/Trucabulles/Kithara-Nea/releases). Windows 10 or later and an AVX2-capable x64 CPU are required for the bundled lyric decoder. A Vulkan-compatible GPU is optional; CPU processing remains available.

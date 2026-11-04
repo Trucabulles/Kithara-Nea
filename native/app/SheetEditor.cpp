@@ -288,7 +288,10 @@ class SheetEditor : public juce::Component {
         using juce::TextEditor::newTransaction;
     } editor;
     juce::Label hint;
-    juce::ComboBox chords;
+    juce::Label chordPrompt;
+    juce::TextEditor chords;
+    juce::TextButton chordMenu{String::fromUTF8("▾")};
+    juce::StringArray chordOptions;
     juce::TextButton insert{tr("Insérer au curseur")}, rebuild{tr("Recalculer le placement auto")},
         save{tr("Enregistrer")}, cancel{tr("Annuler")};
     CloseableDialog *dialog = nullptr;
@@ -326,20 +329,39 @@ class SheetEditor : public juce::Component {
         tabs.addTab("Song sheet", app.theme.paper, &viewport, false);
         tabs.addTab(tr("Texte source"), app.theme.paper, &editor, false);
         addAndMakeVisible(tabs);
-        chords.setEditableText(true);
+        chordPrompt.setText(tr("Choisir ou saisir un accord"), juce::dontSendNotification);
+        chordPrompt.setFont(juce::FontOptions(14));
+        addAndMakeVisible(chordPrompt);
+        chords.setMultiLine(false);
+        chords.setFont(juce::FontOptions(16));
+        chords.setTextToShowWhenEmpty(tr("Ex. : Cadd9, Em6…"), app.theme.ink.withAlpha(.6f));
+        const auto commitChord = [this] {
+            chords.setText(chords.getText().trim(), false);
+        };
+        chords.onFocusLost = commitChord;
+        chords.onReturnKey = commitChord;
+        chordMenu.setTooltip(tr("Accords détectés"));
+        chordMenu.onClick = [this, safe = juce::Component::SafePointer<SheetEditor>(this)] {
+            juce::PopupMenu menu;
+            menu.setLookAndFeel(&app.theme);
+            for (int i = 0; i < chordOptions.size(); ++i)
+                menu.addItem(i + 1, chordOptions[i], true, chordOptions[i] == chords.getText().trim());
+            menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(chordMenu),
+                              [safe](int id) {
+                if (safe && id > 0 && id <= safe->chordOptions.size())
+                    safe->chords.setText(safe->chordOptions[id - 1], false);
+            });
+        };
         std::set<String> seen;
-        int id = 1;
         for (auto &c : app.doc.chords()) {
             auto n = label(c, app.doc);
             if (n != "N" && seen.insert(n).second)
-                chords.addItem(n, id++);
+                chordOptions.add(n);
         }
-        if (id > 1)
-            chords.setSelectedId(1);
-        else
-            chords.setText("C");
+        chords.setText(chordOptions.isEmpty() ? String("C") : chordOptions[0], false);
+        chordMenu.setEnabled(!chordOptions.isEmpty());
         for (auto *component :
-             std::initializer_list<juce::Component *>{&chords, &insert, &rebuild, &save, &cancel})
+             std::initializer_list<juce::Component *>{&chords, &chordMenu, &insert, &rebuild, &save, &cancel})
             addAndMakeVisible(component);
         editor.onTextChange = [this] { preview.setSource(editor.getText()); };
         tabs.changed = [this] { resized(); };
@@ -404,7 +426,10 @@ class SheetEditor : public juce::Component {
         save.setBounds(footer.removeFromRight(130));
         r.removeFromBottom(10);
         auto toolbar = r.removeFromBottom(35);
-        chords.setBounds(toolbar.removeFromLeft(150));
+        chordPrompt.setBounds(toolbar.removeFromLeft(190));
+        chords.setBounds(toolbar.removeFromLeft(160));
+        toolbar.removeFromLeft(4);
+        chordMenu.setBounds(toolbar.removeFromLeft(32));
         toolbar.removeFromLeft(10);
         insert.setVisible(tabs.getCurrentTabIndex() == 1);
         if (insert.isVisible()) {
@@ -472,6 +497,22 @@ void verifySheetEditor(App &app, const File &output) {
     SheetEditor editor(app);
     editor.setLookAndFeel(&app.theme);
     editor.setSize(1050, 740);
+    editor.editor.setText("First second", false);
+    editor.preview.setSource("First second");
+    editor.chords.setText("  Cadd9  ", false);
+    editor.chords.onFocusLost();
+    require(editor.chords.getText() == "Cadd9", "Free chord text was not committed on blur");
+    editor.chords.setText("Fmaj9", false);
+    const int modalsBeforeEntry = juce::ModalComponentManager::getInstance()->getNumModalComponents();
+    const auto wordPoint = editor.preview.drawn.front().lyrics.getTopLeft() + juce::Point<float>(1, 5);
+    editor.preview.mouseDown(juce::MouseEvent(
+        juce::Desktop::getInstance().getMainMouseSource(), wordPoint,
+        juce::ModifierKeys::leftButtonModifier, 1, 0, 0, 0, 0, &editor.preview, &editor.preview,
+        juce::Time::getCurrentTime(), wordPoint, juce::Time::getCurrentTime(), 1, false));
+    require(editor.editor.getText() == "[Fmaj9]First second",
+            "First lyric click did not insert the current free chord without Return");
+    require(juce::ModalComponentManager::getInstance()->getNumModalComponents() == modalsBeforeEntry,
+            "Free chord entry introduced a modal editor");
     require(!editor.insert.isVisible(), "Cursor insertion exposed in preview");
     editor.tabs.setCurrentTabIndex(1);
     require(editor.insert.isVisible(), "Source-text cursor insertion missing");

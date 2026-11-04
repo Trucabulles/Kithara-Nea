@@ -107,9 +107,13 @@ App::App(bool audioEnabled)
         choices.setLookAndFeel(&theme);
         double currentRate;
         { juce::ScopedLock guard(audio.lock); currentRate = audio.timeFactor; }
-        for (int percent : {50, 75, 90, 100})
-            choices.addItem(percent, String(percent) + " %", true,
+        for (int percent : {100, 90, 80, 70, 60, 50}) {
+            auto rateLabel = percent == 100 ? String("1") : String(percent / 100., 1);
+            if (!isEnglish())
+                rateLabel = rateLabel.replaceCharacter('.', ',');
+            choices.addItem(percent, rateLabel + String::fromUTF8("×"), true,
                             std::abs(currentRate * 100 - percent) < .1);
+        }
         choices.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(playbackRate),
             [safe = safePointer()](int percent) {
                 if (safe && percent > 0 && !safe->jobActive) {
@@ -411,9 +415,10 @@ void App::resized() {
     int cw = w - right - 36;
     options.setBounds(18 + cw - 90, 133, 90, 30);
     clock.setBounds(x + 8, 133, cw < 800 ? 100 : 140, 32);
+    playbackRate.setBounds(clock.getRight() + 12, 133, 72, 32);
     // Keep playback volume and recording gain together, including compact windows.
-    const bool compactLevels = options.getX() - clock.getRight() - 56 < 420;
-    const int levelsX = compactLevels ? 18 : clock.getRight() + 36;
+    const bool compactLevels = options.getX() - playbackRate.getRight() - 56 < 420;
+    const int levelsX = compactLevels ? 18 : playbackRate.getRight() + 36;
     const int levelsY = compactLevels ? 173 : 138;
     const int levelsWidth = compactLevels ? cw : options.getX() - levelsX - 20;
     const int gainWidth = std::min(290, (levelsWidth - 20) * 3 / 5);
@@ -426,8 +431,7 @@ void App::resized() {
     inputGainLabel.setBounds(gainX, levelsY - 1, gainCaption, 24);
     inputGain.setBounds(gainX + gainCaption, levelsY - 2, gainWidth - gainCaption, 26);
     const int compactOffset = compactLevels ? 32 : 0;
-    device.setBounds(18, 171 + compactOffset, std::max(0, cw - 170), 22);
-    playbackRate.setBounds(18 + cw - 160, 169 + compactOffset, 160, 28);
+    device.setBounds(18, 171 + compactOffset, cw, 22);
     tracks.setBounds(18, 201 + compactOffset, 100, 30);
     filename.setBounds(132, 201 + compactOffset, std::max(50, cw - 490), 30);
     timeline.setSize(cw, timeline.getHeight());
@@ -1390,8 +1394,10 @@ void App::recordAudio() {
 void App::updatePlaybackRate() {
     double rate;
     { juce::ScopedLock guard(audio.lock); rate = audio.timeFactor; }
-    playbackRate.setButtonText((isEnglish() ? "Speed: " : String::fromUTF8("Vitesse : ")) +
-                               String((int)std::round(rate * 100)) + " %");
+    auto rateLabel = std::abs(rate - 1.) < .001 ? String("1") : String(rate, 1);
+    if (!isEnglish())
+        rateLabel = rateLabel.replaceCharacter('.', ',');
+    playbackRate.setButtonText(rateLabel + String::fromUTF8("× ▾"));
     playbackRate.setTooltip(isEnglish() ? "Playback speed — original pitch preserved"
         : String::fromUTF8("Vitesse d’écoute — hauteur originale conservée"));
 }

@@ -546,6 +546,8 @@ void Timeline::paint(juce::Graphics &g) {
         for (auto &item : labels) {
             g.setColour(app.theme.paper);
             g.fillRoundedRectangle(item.second, 3);
+            g.setColour(app.theme.border);
+            g.drawRoundedRectangle(item.second.reduced(.5f), 3, 1);
             g.setColour(app.theme.ink);
             g.drawText(item.first, item.second.reduced(6, 0), juce::Justification::centredLeft);
         }

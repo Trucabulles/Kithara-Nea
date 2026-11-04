@@ -1,6 +1,6 @@
 # KITHÁRA NÉA
 ## Manuel d’utilisation
-Version de travail C++ / JUCE • Octobre 2026
+Version 0.2.5 • Novembre 2026
 
 KITHÁRA NÉA permet d’analyser les accords d’un enregistrement, de suivre les paroles et de préparer une song sheet. L’analyse musicale et la transcription sont deux actions distinctes, lancées à la demande. Les traitements restent locaux.
 
@@ -32,6 +32,8 @@ Chaque carte présente le nom au-dessus du doigté choisi. Cliquer une carte sé
 La tête de lecture reste uniquement sur la forme d’onde. L’accord courant et le mot chanté ont leurs propres surbrillances. Les deux cartes suivantes permettent d’anticiper : aucun nom supplémentaire n’est superposé à l’onde ou aux paroles.
 
 ## 4. Transport et son
+Le menu de vitesse, à côté du compteur de lecture, affiche 1× par défaut. Choisissez 0,9×, 0,8×, 0,7×, 0,6× ou 0,5× pour ralentir l’écoute en conservant la hauteur des notes. Revenez à 1× pour la vitesse originale.
+
 Le triangle lance la lecture ; l’icône pause la suspend en conservant la position. Le carré arrête la lecture et revient au début. Les deux flèches permettent de reculer ou d’avancer de cinq secondes ; un double-clic rejoint le début ou la fin. Un double-clic sur les libellés à gauche des pistes revient aussi au début.
 
 L’icône de boucle active ou désactive la boucle. Le bouton rouge lance un décompte visuel 3–2–1, puis enregistre depuis l’entrée sélectionnée. Espace, Échap ou un second clic annule le décompte sans créer de prise. Pendant l’enregistrement, Espace ou R termine et ouvre la prise. Le gain d’entrée (0 à +24 dB, initialement 0 dB) agit seulement sur les nouvelles prises, indépendamment du volume d’écoute. La durée capturée, le niveau et la forme d’onde en direct sont affichés ; un tracé rouge et un avertissement signalent une saturation. Réduisez le gain si la prise sature. Le menu hamburger donne accès aux entrées et sorties audio. Vérifiez le périphérique, les canaux et les effets du microphone si aucun son n’est capturé. Les prises brutes sont temporairement conservées dans le dossier utilisateur de l’application. La sauvegarde intègre toujours une prise créée dans l’application, y compris avec Enregistrer un projet lié : aucun fichier audio séparé n’est nécessaire pour rouvrir la prise sauvegardée.
@@ -59,6 +61,8 @@ Un fichier instrumental peut ne donner aucun mot. En cas d’absence de repères
 La piste Paroles affiche une phrase stable avec des espaces plus généreux et la surbrillance du mot courant. Cliquer un mot horodaté rejoint sa position. En mode Paroles seules, les accords apparaissent au-dessus : sur un mot, entre deux mots ou avant/après la phrase selon leurs temps. Les passages instrumentaux continuent à présenter les accords sans inventer de syllabe associée.
 
 ## 7. Édition et song sheet
+Le champ « Choisir ou saisir un accord » permet de taper un nom absent des accords détectés, par exemple Cadd9 ou Em6. La saisie est prise en compte à la perte de focus. Cliquez ensuite sur un mot pour insérer cet accord dans la song sheet. Le bouton fléché à côté du champ propose les accords détectés du morceau.
+
 « Édition des données », en bas du panneau de réglages, ouvre une fenêtre secondaire avec les onglets Accords et Paroles horodatées. Double-cliquer une cellule permet de modifier le nom d’accord, sa basse, le texte de la ligne ou ses temps de début et fin en secondes. Entrée valide ; Échap annule. La colonne Mots ouvre l’édition du texte et des temps de chaque mot. Corriger un mot conserve ses temps et met à jour les positions dans le texte source. Remplacer toute une ligne retire uniquement ses temps de mots ; utiliser Mots pour les corrections locales conservant l’horodatage. Les valeurs invalides et les chevauchements sont refusés. Annuler/Rétablir et la sauvegarde .knea incluent ces corrections.
 
 L’analyse des accords et l’alignement des paroles peuvent être lancés dans n’importe quel ordre. La song sheet automatique combine les résultats disponibles sans relancer Whisper. Une sheet retouchée manuellement est conservée ; Recalculer le placement permet de la remplacer explicitement après confirmation. Une ancienne sheet sauvegardée n’est considérée comme automatique que si elle correspond exactement à l’ancien résultat du générateur.

@@ -1,6 +1,6 @@
 # KITHÁRA NÉA
 ## User manual
-C++ / JUCE working version • October 2026
+Version 0.2.5 • November 2026
 
 KITHÁRA NÉA analyzes chords in a recording, follows lyrics and helps prepare a song sheet. Music analysis and lyric transcription are separate actions, started on demand. Processing takes place locally.
 
@@ -32,6 +32,8 @@ Each card shows the name above the selected fingering. Click a card to select th
 The playhead appears only on the waveform. The current chord and sung word have their own highlights. The two following cards provide anticipation; no additional chord name overlays the waveform or lyrics.
 
 ## 4. Playback and sound
+The speed menu beside the playback counter shows 1× by default. Choose 0.9×, 0.8×, 0.7×, 0.6× or 0.5× to slow playback while preserving pitch. Select 1× to return to the original speed.
+
 The triangle starts playback; pause preserves the current position. The square stops playback and returns to the beginning. The two navigation arrows skip backward or forward five seconds; double-click jumps to the beginning or end. Double-clicking the left track labels also returns to the beginning.
 
 The loop icon enables or disables looping. The red button starts a visual 3–2–1 countdown, then records from the selected input. Space, Esc or a second click cancels the countdown without creating a take. During recording, Space or R finishes and opens the take. Input gain (0 to +24 dB, initially 0 dB) affects only new recordings, independently of playback volume. The captured duration, input level and rolling waveform are displayed; a red trace and warning report clipping. Reduce input gain if clipping occurs. Audio inputs and outputs are available in the hamburger menu. Check the device, channels and microphone effects if no sound is captured. Raw takes are temporarily kept in the application user folder. Saving a project always embeds an application recording, including Save linked project: no separate audio file is required to reopen the saved take.
@@ -59,6 +61,8 @@ Instrumental audio may yield no words. Without usable matches, entered text and 
 The Lyrics track shows one stable phrase with generous word spacing and a highlight on the current word. Clicking a timed word seeks to it. In Lyrics-only mode, chord names appear above words, between words, or before/after a phrase according to their times. Instrumental passages still display chords without attaching them to invented syllables.
 
 ## 7. Editing and song sheets
+The “Choose or enter a chord” field accepts chord names beyond those detected in the recording, such as Cadd9 or Em6. The entry is committed when the field loses focus. Click a word to insert that chord into the song sheet. The adjacent arrow button lists the recording’s detected chords.
+
 Edit data, at the bottom of the settings panel, opens a secondary window with Chords and Timed lyrics tabs. Double-click a cell to edit chord names, bass notes, line text or start/end times in seconds. Enter applies; Escape cancels. The Words column opens an editor for individual word text and timestamps. Correcting one word preserves its times and updates source-text offsets. Replacing a complete line clears only that line's word timestamps; use Words for local corrections that should retain timing. Invalid values and time overlaps are rejected. Undo/Redo and .knea saving include these corrections.
 
 Chord analysis and lyric alignment may run in either order. The automatic song sheet combines the available results without running Whisper again. Existing manually edited sheets are preserved; Recalculate placement explicitly replaces them after confirmation. Older saved sheets are treated as automatic only when they exactly match the previous generator output.

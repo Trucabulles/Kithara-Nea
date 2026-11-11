@@ -13,6 +13,11 @@ if (-not $SkipBuild) {
     if (-not $taskCMake) { throw 'CMake et Visual Studio C++ sont necessaires.' }
     & $taskCMake -S $taskRoot -B (Join-Path $taskRoot 'build-juce') -G 'Visual Studio 17 2022' -A x64 '-DCMAKE_POLICY_VERSION_MINIMUM=3.5' '-DCMAKE_CONFIGURATION_TYPES=Release'
     if ($LASTEXITCODE) { throw 'Configuration CMake en echec.' }
+    # JUCE's resource rule does not track the version metadata as an input.
+    $taskGeneratedResource = Join-Path $taskRoot 'build-juce/KitharaNea_artefacts/JuceLibraryCode/KitharaNea_resources.rc'
+    if (Test-Path -LiteralPath $taskGeneratedResource -PathType Leaf) {
+        Remove-Item -LiteralPath $taskGeneratedResource
+    }
     & $taskCMake --build (Join-Path $taskRoot 'build-juce') --config Release --target KitharaNea kithara-lv-native --parallel 4
     if ($LASTEXITCODE) { throw 'Compilation en echec.' }
     $taskHarmony = Join-Path $taskRoot 'resources/lv_chordia_native'

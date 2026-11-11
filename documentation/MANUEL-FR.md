@@ -1,6 +1,6 @@
 # KITHÁRA NÉA
 ## Manuel d’utilisation
-Version 0.2.5 • Novembre 2026
+Version 0.2.6 • Novembre 2026
 
 KITHÁRA NÉA permet d’analyser les accords d’un enregistrement, de suivre les paroles et de préparer une song sheet. L’analyse musicale et la transcription sont deux actions distinctes, lancées à la demande. Les traitements restent locaux.
 

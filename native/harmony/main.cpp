@@ -246,17 +246,38 @@ Probabilities infer(Matrix& features,const fs::path& models){
   std::cerr<<"Network "<<m+1<<"/5\n";
  }for(auto& head:mean)for(auto& v:head.data)v/=5.f;return mean;
 }
+static const OrtApiBase* initBundledOrt() {
+    std::wstring executable(32768, L'\0');
+    const auto length = GetModuleFileNameW(nullptr, executable.data(), static_cast<DWORD>(executable.size()));
+    if (!length || length >= executable.size())
+        throw std::runtime_error("Cannot locate the chord analysis executable");
+    executable.resize(length);
+    const auto path = fs::path(executable).parent_path() / L"onnxruntime.dll";
+    const auto library = LoadLibraryExW(path.c_str(), nullptr,
+                                       LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (!library)
+        throw std::runtime_error("Cannot load bundled onnxruntime.dll (Windows error " +
+                                 std::to_string(GetLastError()) + ")");
+    const auto getApiBase = reinterpret_cast<const OrtApiBase*(ORT_API_CALL*)()>(
+        GetProcAddress(library, "OrtGetApiBase"));
+    if (!getApiBase)
+        throw std::runtime_error("Missing OrtGetApiBase in bundled onnxruntime.dll");
+    const auto* base = getApiBase();
+    const auto* api = base ? base->GetApi(ORT_API_VERSION) : nullptr;
+    if (!api)
+        throw std::runtime_error("Bundled ONNX Runtime does not support API " +
+                                 std::to_string(ORT_API_VERSION));
+    Ort::InitApi(api);
+    return base;
+}
+
 int wmain(int argc,wchar_t** argv){try{
  if(argc<5){std::cerr<<"Usage: kithara-lv-native --audio|--cqt|--features input output assets [models]\n";return 2;}
  fs::path input=argv[2],output=argv[3],assets=argv[4];std::wstring mode=argv[1];auto start=Clock::now();Matrix features;int tuning=-1;double cqt_seconds=0;
  if(mode==L"--btc-cqt"){save_npy(output,btcFeatures(read_wav(input).samples,read_json(assets)));return 0;}
  if(mode==L"--btc"){
   if(argc!=6)throw std::runtime_error("BTC model required");
-  auto library=LoadLibraryW(L"onnxruntime.dll");
-  if(!library)throw std::runtime_error("Cannot load native onnxruntime.dll");
-  auto api=reinterpret_cast<const OrtApiBase*(ORT_API_CALL*)()>(GetProcAddress(library,"OrtGetApiBase"));
-  if(!api)throw std::runtime_error("Missing OrtGetApiBase");
-  Ort::InitApi(api()->GetApi(ORT_API_VERSION));
+  initBundledOrt();
   write_json(output,analyseBtc(read_wav(input),read_json(assets),fs::path(argv[5])));
   return 0;
  }
@@ -266,13 +287,12 @@ int wmain(int argc,wchar_t** argv){try{
  if(mode==L"--cqt"){save_npy(output,features);write_json(output.wstring()+L".json",{{"tuning_index",tuning},{"frames",features.frames},{"seconds",cqt_seconds}});return 0;}
  if(mode==L"--audio")save_npy(output.wstring()+L".cqt.npy",features);
  if(argc!=6)throw std::runtime_error("Models directory required");
- auto library=LoadLibraryW(L"onnxruntime.dll");if(!library)throw std::runtime_error("Cannot load native onnxruntime.dll");
- auto get_api=reinterpret_cast<const OrtApiBase*(ORT_API_CALL*)()>(GetProcAddress(library,"OrtGetApiBase"));if(!get_api)throw std::runtime_error("Missing OrtGetApiBase");
- Ort::InitApi(get_api()->GetApi(ORT_API_VERSION));auto network_start=Clock::now();auto probs=infer(features,fs::path(argv[5]));double network_seconds=elapsed(network_start);
+ const auto* apiBase = initBundledOrt();
+ auto network_start=Clock::now();auto probs=infer(features,fs::path(argv[5]));double network_seconds=elapsed(network_start);
  for(int h=0;h<6;++h)save_npy(output.wstring()+L".head"+std::to_wstring(h)+L".npy",probs[h]);
  auto hmm_start=Clock::now();auto chords=decode(probs,assets);double hmm_seconds=elapsed(hmm_start);json result=json::array();
  for(auto& s:chords)result.push_back({{"start_time",std::nearbyint(s.start*100)/100},{"end_time",std::nearbyint(s.end*100)/100},{"chord",s.name}});
  write_json(output,result);PROCESS_MEMORY_COUNTERS counters{};GetProcessMemoryInfo(GetCurrentProcess(),&counters,sizeof(counters));
- write_json(output.wstring()+L".metrics.json",{{"frames",features.frames},{"tuning_index",tuning},{"cqt_seconds",cqt_seconds},{"network_seconds",network_seconds},{"hmm_seconds",hmm_seconds},{"total_seconds",elapsed(start)},{"peak_process_bytes",counters.PeakWorkingSetSize},{"python_runtime",false},{"onnxruntime",get_api()->GetVersionString()},{"device","cpu"}});
+ write_json(output.wstring()+L".metrics.json",{{"frames",features.frames},{"tuning_index",tuning},{"cqt_seconds",cqt_seconds},{"network_seconds",network_seconds},{"hmm_seconds",hmm_seconds},{"total_seconds",elapsed(start)},{"peak_process_bytes",counters.PeakWorkingSetSize},{"python_runtime",false},{"onnxruntime",apiBase->GetVersionString()},{"device","cpu"}});
  return 0;
  }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

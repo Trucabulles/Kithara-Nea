@@ -1,6 +1,6 @@
 # KITHÁRA NÉA
 ## User manual
-Version 0.2.5 • November 2026
+Version 0.2.6 • November 2026
 
 KITHÁRA NÉA analyzes chords in a recording, follows lyrics and helps prepare a song sheet. Music analysis and lyric transcription are separate actions, started on demand. Processing takes place locally.
 

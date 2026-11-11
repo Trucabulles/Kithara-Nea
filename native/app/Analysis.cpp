@@ -180,7 +180,9 @@ struct BeatRuntime {
     Ort::Session session{nullptr};
     BeatRuntime() : library(resource("lv_chordia_native/onnxruntime.dll")) {
         auto api = library.get<const OrtApiBase *(ORT_API_CALL *)()>("OrtGetApiBase")();
-        Ort::InitApi(api->GetApi(ORT_API_VERSION));
+        const auto *table = api ? api->GetApi(ORT_API_VERSION) : nullptr;
+        require(table != nullptr, "Bundled ONNX Runtime does not support the rhythm analysis API");
+        Ort::InitApi(table);
         auto provenance = readJson(resource("models/beat_this_official/onnx-provenance.json"));
         auto path = resource("models/beat_this_official/small0.onnx");
         checkFile(path, text(provenance, "sha256"));

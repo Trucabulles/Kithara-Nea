@@ -58,6 +58,10 @@ class PdfCanvas {
     void setColour(juce::Colour c) { colour = c; }
     void setFont(const juce::Font &f) { font = f; }
     void setFont(const juce::FontOptions &f) { font = juce::Font(f); }
+    void fillPath(const juce::Path &shape) {
+        if (!shape.isEmpty())
+            path(shape);
+    }
     void line(float x1, float y1, float x2, float y2, float weight = .5f) {
         juce::Path p;
         p.startNewSubPath(x1, y1);

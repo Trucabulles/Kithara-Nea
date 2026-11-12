@@ -572,6 +572,37 @@ J verifyNative(const File &output) {
     doc.validate();
     {
         Document sheet;
+        sheet.j["duration"] = 10.;
+        sheet.j["reference_text"] = "One two three four";
+        sheet.j["reference_matches"] = J::array({
+            {{"start", 1.}, {"end", 1.6}, {"offset", 0}, {"text", "One"}, {"kind", "exact"}},
+            {{"start", 2.}, {"end", 2.6}, {"offset", 4}, {"text", "two"}, {"kind", "exact"}},
+            {{"start", 3.}, {"end", 3.6}, {"offset", 8}, {"text", "three"}, {"kind", "exact"}},
+            {{"start", 4.}, {"end", 4.6}, {"offset", 14}, {"text", "four"}, {"kind", "exact"}}});
+        sheet.chords() = J::array({
+            {{"start", 0.}, {"end", 1.2}, {"name", "G"}},
+            {{"start", 1.2}, {"end", 4.2}, {"name", "C"}},
+            {{"start", 4.2}, {"end", 10.}, {"name", "Am"}}});
+        const auto before = initialSheet(sheet);
+        const auto intro = sheet.chords().front();
+        check("Sheet replacement preserves exact timing and inserts at timed word",
+              applySheetChordEdits(sheet, theory, before, "[G]\n[F]One [Dm]two three [Am]four") == 0 &&
+                  sheet.chords().size() == 4 && sheet.chords()[0] == intro &&
+                  sheet.chords()[1]["start"] == 1.2 && text(sheet.chords()[1], "name") == "F" &&
+                  sheet.chords()[2]["start"] == 2. && text(sheet.chords()[2], "name") == "Dm");
+        check("Sheet chord move follows destination word",
+              applySheetChordEdits(sheet, theory, "[G]\n[F]One [Dm]two three [Am]four",
+                                  "[G]\n[F]One two [Dm]three [Am]four") == 0 &&
+                  text(sheet.chords()[2], "name") == "N" && sheet.chords()[3]["start"] == 3. &&
+                  text(sheet.chords()[3], "name") == "Dm");
+        const auto events = sheet.chords();
+        check("Unanchored sheet edits leave timeline intact",
+              applySheetChordEdits(sheet, theory, "[G]\n[F]One two [Dm]three [Am]four",
+                                  "[E]\n[F]One two [Dm]three [Am]four") != 0 && sheet.chords() == events);
+        sheet.validate();
+    }
+    {
+        Document sheet;
         sheet.j["duration"] = 30.;
         sheet.j["reference_text"] = "First line\n\nSecond line";
         sheet.j["reference_matches"] =
@@ -757,6 +788,23 @@ J verifyNative(const File &output) {
     exportCsv(doc, output.getChildFile("song.csv"));
     exportPdf(doc, theory, output.getChildFile("song.pdf"), true);
     check("Export PDF", output.getChildFile("song.pdf").getSize() > 500);
+    {
+        auto paginated = doc;
+        juce::StringArray lines;
+        for (int line = 1; line <= 36; ++line) {
+            lines.add(line <= 30 ? "[C]Line " + String(line) + " with a [G]second chord"
+                                 : String::fromUTF8("[C]Été, déjà [G]gagné jusqu’à l’aube"));
+            if (line == 12 || line == 24)
+                lines.add({});
+        }
+        paginated.j["song_sheet"] = utf(lines.joinIntoString("\n"));
+        const auto compact = output.getChildFile("song-pagination.pdf");
+        const auto large = output.getChildFile("song-pagination-large.pdf");
+        exportPdf(paginated, theory, compact, true);
+        exportPdf(paginated, theory, large, true, {24, 24});
+        check("Song sheet PDF exports with default and custom font sizes",
+              compact.getSize() > 500 && large.getSize() > 500 && sha256(compact) != sha256(large));
+    }
     auto golden = resource("native-tests/golden.json");
     if (golden.existsAsFile()) {
         auto data = readJson(golden);

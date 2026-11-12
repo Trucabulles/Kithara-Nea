@@ -1543,13 +1543,71 @@ void App::exportPopup(juce::Component *origin) {
                         safe->exportFile(types[id - 1]);
                     });
 }
-void App::exportFile(String kind) {
+void App::exportFile(String kind, const SongPdfOptions *songOptions) {
     if (jobActive)
         return;
     if ((kind == "song" || kind == "cho") && text(doc.j, "song_sheet").isEmpty()) {
         editSheet();
         if (text(doc.j, "song_sheet").isEmpty())
             return;
+    }
+    if (kind == "song" && !songOptions) {
+        struct Content : juce::Component {
+            juce::Label lyricsLabel, chordsLabel;
+            juce::Slider lyrics, chords;
+            juce::TextButton save{tr("Exporter")}, cancel{tr("Annuler")};
+            Content() {
+                lyricsLabel.setText(tr("Taille des paroles"), juce::dontSendNotification);
+                chordsLabel.setText(tr("Taille des accords"), juce::dontSendNotification);
+                const SongPdfOptions defaults;
+                for (auto *slider : {&lyrics, &chords}) {
+                    slider->setSliderStyle(juce::Slider::IncDecButtons);
+                    slider->setTextBoxStyle(juce::Slider::TextBoxLeft, false, 72, 30);
+                    slider->setRange(SongPdfOptions::minFontSize, SongPdfOptions::maxFontSize, 1);
+                    slider->setTextValueSuffix(" pt");
+                    addAndMakeVisible(slider);
+                }
+                lyrics.setValue(defaults.lyricsSize, juce::dontSendNotification);
+                chords.setValue(defaults.chordsSize, juce::dontSendNotification);
+                addAndMakeVisible(lyricsLabel);
+                addAndMakeVisible(chordsLabel);
+                addAndMakeVisible(save);
+                addAndMakeVisible(cancel);
+            }
+            void resized() override {
+                auto area = getLocalBounds().reduced(20);
+                auto lyricsRow = area.removeFromTop(34);
+                lyrics.setBounds(lyricsRow.removeFromRight(150));
+                lyricsLabel.setBounds(lyricsRow);
+                area.removeFromTop(8);
+                auto chordsRow = area.removeFromTop(34);
+                chords.setBounds(chordsRow.removeFromRight(150));
+                chordsLabel.setBounds(chordsRow);
+                auto buttons = area.removeFromBottom(34);
+                save.setBounds(buttons.removeFromRight(110));
+                buttons.removeFromRight(8);
+                cancel.setBounds(buttons.removeFromRight(110));
+            }
+        };
+        auto content = std::make_unique<Content>();
+        auto *controls = content.get();
+        auto *dialog = presentDialog(tr("Song sheet PDF…"), std::move(content), 450, 205,
+            [safe = safePointer()](int code, juce::Component &component) {
+                if (!safe || code != 1)
+                    return;
+                auto &settings = static_cast<Content &>(component);
+                settings.lyrics.hideTextBox(false);
+                settings.chords.hideTextBox(false);
+                const SongPdfOptions options{(int)settings.lyrics.getValue(), (int)settings.chords.getValue()};
+                juce::MessageManager::callAsync([safe, options] {
+                    if (safe)
+                        safe->exportFile("song", &options);
+                });
+            });
+        auto safe = juce::Component::SafePointer<CloseableDialog>(dialog);
+        controls->save.onClick = [safe] { if (safe) safe->exitModalState(1); };
+        controls->cancel.onClick = [safe] { if (safe) safe->exitModalState(0); };
+        return;
     }
     auto extension = kind == "song" ? "pdf" : kind;
     auto base = project == File() ? File::getSpecialLocation(File::userDocumentsDirectory)
@@ -1568,7 +1626,7 @@ void App::exportFile(String kind) {
     auto file = chooser.getResult();
     try {
         if (kind == "song" || kind == "pdf")
-            exportPdf(doc, theory, file, kind == "song");
+            exportPdf(doc, theory, file, kind == "song", songOptions ? *songOptions : SongPdfOptions{});
         else if (kind == "cho")
             exportChordPro(doc, file);
         else if (kind == "mid")

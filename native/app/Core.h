@@ -195,6 +195,7 @@ int activeLyricCue(const J &lyrics, double seconds);
 int activeLyricWord(const J &cue, double seconds);
 std::pair<J, J> align(String, const J &, Cancel = {});
 String initialSheet(const Document &);
+int applySheetChordEdits(Document &, Theory &, const String &before, const String &after);
 void updateAutomaticSheet(Document &, const Document &previous);
 void exportMidi(const Document &, const File &);
 void exportCsv(const Document &, const File &);
@@ -225,7 +226,13 @@ void drawFretboard(juce::Graphics &, juce::Rectangle<float>, const std::vector<i
                    bool fitContent = false);
 void drawPiano(juce::Graphics &, juce::Rectangle<float>, const std::vector<int> &,
                const std::vector<int> &left = {}, int pressed = -1, bool showLabels = true);
-void exportPdf(const Document &, Theory &, const File &, bool song);
+struct SongPdfOptions {
+    static constexpr int minFontSize = 8;
+    static constexpr int maxFontSize = 24;
+    int lyricsSize = 12;
+    int chordsSize = 10;
+};
+void exportPdf(const Document &, Theory &, const File &, bool song, SongPdfOptions = {});
 J timedChartLayout(const Document &, Theory &);
 void exportTimedChart(const Document &, Theory &, const File &);
 J verifyNative(const File &output);

@@ -409,7 +409,7 @@ class App : public juce::Component, private juce::Timer {
     CloseableDialog *activeDialog() const;
     void alignmentReport();
     void editSheet();
-    void exportFile(String);
+    void exportFile(String, const SongPdfOptions * = nullptr);
     void audioSettings();
     void about();
     void licenses();

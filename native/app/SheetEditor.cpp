@@ -415,7 +415,6 @@ class SheetEditor : public juce::Component {
         return true;
     }
     String source() const { return editor.getText(); }
-    String generatedSource() const { return initialSheet(app.doc); }
     void setDialog(CloseableDialog *d) { dialog = d; }
     void resized() override {
         auto r = getLocalBounds().reduced(18);
@@ -451,13 +450,30 @@ void App::editSheet() {
     auto *dialog = presentDialog(
         tr("Song sheet · paroles et accords"), std::move(content), std::min(1100, area.getWidth() - 40),
         std::min(840, area.getHeight() - 40), [safe = safePointer()](int code, juce::Component &component) {
-            if (safe && code == 1) {
-                safe->snapshot();
-                safe->doc.j["song_sheet"] = utf(static_cast<SheetEditor &>(component).source());
-                safe->doc.j["song_sheet_generated"] =
-                    utf(static_cast<SheetEditor &>(component).generatedSource());
-                safe->setStatus(tr("Song sheet enregistrée dans le projet"));
+            if (!safe || code != 1)
+                return;
+            auto candidate = safe->doc;
+            auto before = text(candidate.j, "song_sheet");
+            if (before.isEmpty())
+                before = initialSheet(candidate);
+            const auto after = static_cast<SheetEditor &>(component).source();
+            bool synced = false;
+            try {
+                synced = applySheetChordEdits(candidate, safe->theory, before, after) == 0;
+                candidate.j["song_sheet"] = utf(after);
+                candidate.j["song_sheet_generated"] = utf(initialSheet(candidate));
+                candidate.validate();
+            } catch (const std::exception &error) {
+                safe->setStatus(String::fromUTF8(error.what()));
+                return;
             }
+            if (candidate.j != safe->doc.j) {
+                safe->snapshot();
+                safe->doc = std::move(candidate);
+                safe->refresh();
+            }
+            safe->setStatus(synced ? tr("Song sheet enregistrée dans le projet")
+                                   : tr("Song sheet enregistrée · placement d’accord à vérifier dans la piste Accords"));
         });
     editor->setDialog(dialog);
 }

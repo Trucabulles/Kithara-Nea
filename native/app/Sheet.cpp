@@ -439,7 +439,7 @@ std::vector<SheetLine> sheetLines(String source) {
     std::vector<SheetLine> result;
     int base = 0;
     static std::regex chord(
-        "[A-G](?:#|b)?(?:(?:maj|min|dim|aug|sus|add|omit|alt|dom|m|M|no)|[0-9#b+()\\-])*(?:/[A-G](?:#|b)?)?");
+        "[A-G](?:#|b)?(?:(?:maj|min|dim|aug|sus|add|omit|alt|dom|m|M|no|6/9)|[0-9#b+()\\-])*(?:/[A-G](?:#|b)?)?");
     for (auto &line : juce::StringArray::fromLines(source)) {
         SheetLine row;
         String pending;
@@ -465,6 +465,175 @@ std::vector<SheetLine> sheetLines(String source) {
         base += line.length() + 1;
     }
     return result;
+}
+int applySheetChordEdits(Document &doc, Theory &theory, const String &before, const String &after) {
+    if (before == after)
+        return 0;
+
+    std::vector<String> timedWords;
+    std::vector<std::pair<double, double>> times;
+    auto collectWord = [&](const J &word) {
+        auto name = normal(text(word, "text"));
+        if (name.isNotEmpty()) {
+            timedWords.push_back(name);
+            times.emplace_back(word.at("start").get<double>(), word.at("end").get<double>());
+        }
+    };
+    if (text(doc.j, "reference_text").isNotEmpty()) {
+        for (const auto &word : doc.j.at("reference_matches"))
+            collectWord(word);
+    } else {
+        for (const auto &line : doc.lyrics())
+            for (const auto &word : line.value("words", J::array()))
+                collectWord(word);
+    }
+    struct Anchor {
+        double earliest = 0;
+        std::vector<String> chords;
+    };
+    auto parse = [&](const String &source) {
+        String plain;
+        std::vector<std::pair<int, String>> tags;
+        for (const auto &line : sheetLines(source)) {
+            for (const auto &token : line.tokens) {
+                if (token.chord.isNotEmpty())
+                    tags.emplace_back(plain.length(), token.chord);
+                plain += token.text;
+            }
+            plain += "\n";
+        }
+        const auto refs = words(plain, true);
+        std::vector<String> names;
+        names.reserve(refs.size());
+        for (const auto &ref : refs)
+            names.push_back(ref.norm);
+        std::vector<int> aligned(refs.size(), -1);
+        if (names == timedWords) {
+            std::iota(aligned.begin(), aligned.end(), 0);
+        } else if (!names.empty() && !timedWords.empty()) {
+            require(names.size() <= 20000 && timedWords.size() <= 20000, tr("Texte trop long : 20 000 mots maximum"));
+            for (auto match : matching(names, timedWords))
+                for (int i = 0; i < match.size; ++i)
+                    aligned[match.a + i] = match.b + i;
+        }
+        std::map<int, Anchor> anchored;
+        std::vector<String> unanchored;
+        size_t index = 0;
+        for (const auto &[offset, chord] : tags) {
+            while (index < refs.size() && refs[index].offset + refs[index].word.length() <= offset)
+                ++index;
+            if (index == refs.size() || aligned[index] < 0 ||
+                plain.substring(offset, refs[index].offset).containsChar('\n')) {
+                unanchored.push_back(chord);
+                continue;
+            }
+            const int word = aligned[index];
+            auto &anchor = anchored[word];
+            anchor.earliest = times[word].first;
+            if (index > 0 && aligned[index - 1] >= 0 &&
+                !plain.substring(refs[index - 1].offset, refs[index].offset).containsChar('\n'))
+                anchor.earliest = std::min(anchor.earliest, times[aligned[index - 1]].second);
+            anchor.chords.push_back(chord);
+        }
+        return std::make_pair(anchored, unanchored);
+    };
+    auto [oldAnchors, oldUnanchored] = parse(before);
+    auto [newAnchors, newUnanchored] = parse(after);
+    // If a tag has moved to or from text without timing, don't apply just
+    // one half of that edit to the timeline.
+    if (oldUnanchored != newUnanchored)
+        return 1;
+
+    auto original = doc.chords();
+    const int transposition = doc.j.value("transpose", 0);
+    auto setChord = [&](J &event, const String &name) {
+        int slash = name.lastIndexOfChar('/');
+        if (slash >= 0 && pitch(name.substring(slash + 1)) < 0)
+            slash = -1;
+        const auto root = slash >= 0 ? name.substring(0, slash) : name;
+        const auto bass = slash >= 0 ? name.substring(slash + 1) : String();
+        if (root != "N") {
+            const int rootLength = root.length() > 1 && (root[1] == '#' || root[1] == 'b') ? 2 : 1;
+            try {
+                theory.intervals(root.substring(rootLength).replace("6/9", "69"));
+            } catch (const std::exception &) {
+                return false;
+            }
+        }
+        event["name"] = utf(transpose(root, -transposition));
+        event["bass"] = utf(transpose(bass, -transposition));
+        event["notes"] = root == "N" ? J::array() : theory.notes(text(event, "name"), text(event, "bass"));
+        event["source"] = "manual";
+        return true;
+    };
+    std::set<int> changedWords;
+    for (const auto &[word, anchor] : oldAnchors)
+        if (anchor.chords != newAnchors[word].chords)
+            changedWords.insert(word);
+    for (const auto &[word, anchor] : newAnchors)
+        if (anchor.chords != oldAnchors[word].chords)
+            changedWords.insert(word);
+    std::map<size_t, String> replacements;
+    std::map<double, String> insertions;
+    for (int word : changedWords) {
+        const auto &old = oldAnchors[word];
+        const auto &next = newAnchors[word];
+        const auto [start, end] = times[word];
+        auto oldNames = old.chords, newNames = next.chords;
+        for (auto i = oldNames.begin(); i != oldNames.end();) {
+            auto same = std::find(newNames.begin(), newNames.end(), *i);
+            if (same == newNames.end()) {
+                ++i;
+            } else {
+                newNames.erase(same);
+                i = oldNames.erase(i);
+            }
+        }
+        if (oldNames.size() > 1 || newNames.size() > 1 || start >= doc.duration())
+            return 1;
+        if (!oldNames.empty()) {
+            std::vector<size_t> hits;
+            for (size_t i = 0; i < original.size(); ++i) {
+                const double at = original[i].at("start");
+                if (at >= old.earliest && (at < end || at == start) && label(original[i], doc) == oldNames[0])
+                    hits.push_back(i);
+            }
+            if (hits.size() != 1 || !replacements.emplace(hits[0], newNames.empty() ? String("N") : newNames[0]).second)
+                return 1;
+        } else if (!newNames.empty() && !insertions.emplace(start, newNames[0]).second) {
+            return 1;
+        }
+    }
+    auto events = original;
+    for (const auto &[index, name] : replacements)
+        if (!setChord(events[index], name))
+            return 1;
+    for (const auto &[start, name] : insertions) {
+        auto next = std::lower_bound(events.begin(), events.end(), start,
+            [](const J &event, double at) { return event.at("start").get<double>() < at; });
+        if (next != events.end() && next->at("start").get<double>() == start) {
+            if (!setChord(*next, name))
+                return 1;
+            continue;
+        }
+        double end = next == events.end() ? doc.duration() : next->at("start").get<double>();
+        if (next != events.begin()) {
+            auto previous = std::prev(next);
+            const double previousEnd = previous->at("end");
+            if (previousEnd > start) {
+                end = std::min(end, previousEnd);
+                (*previous)["end"] = start;
+            }
+        }
+        if (end <= start)
+            return 1;
+        J event = {{"start", start}, {"end", end}};
+        if (!setChord(event, name))
+            return 1;
+        events.insert(next, std::move(event));
+    }
+    doc.chords() = std::move(events);
+    return 0;
 }
 void exportCsv(const Document &d, const File &file) {
     auto quote = [](String s) { return "\"" + s.replace("\"", "\"\"") + "\""; };
@@ -697,7 +866,7 @@ void drawPiano(juce::Graphics &g, juce::Rectangle<float> rect, const std::vector
             g.fillRoundedRectangle(r, 2);
         }
 }
-void exportPdf(const Document &d, Theory &theory, const File &file, bool song) {
+void exportPdf(const Document &d, Theory &theory, const File &file, bool song, SongPdfOptions options) {
     if (!song) {
         exportTimedChart(d, theory, file);
         return;
@@ -705,6 +874,9 @@ void exportPdf(const Document &d, Theory &theory, const File &file, bool song) {
     NativePdfDocument pdf;
     pdf.setPageSize(595, 842);
     pdf.setTitle(juce::String::fromUTF8("KITHÁRA NÉA"));
+    constexpr int contentTop = 78;
+    constexpr int contentBottom = 802;
+    int pageNumber = 0;
     auto page = [&]() {
         auto graphics = pdf.startPage();
         require(graphics != nullptr, tr("Création PDF impossible"));
@@ -722,95 +894,125 @@ void exportPdf(const Document &d, Theory &theory, const File &file, bool song) {
             info += tr(" (proposée)");
         info += juce::String::fromUTF8(" · Capo ") + String(d.j.value("capo", 0));
         graphics->drawText(info, 30, 48, 535, 16, juce::Justification::left);
+        graphics->setFont(juce::FontOptions("Segoe UI", 9, juce::Font::plain));
+        graphics->drawText(String(++pageNumber), 30, 812, 535, 16, juce::Justification::centred);
         return graphics;
     };
     auto g = page();
-    float y = 78;
+    int y = contentTop;
+    auto ensureSpace = [&](int height) {
+        if (y + height > contentBottom) {
+            g = page();
+            y = contentTop;
+        }
+    };
+    const int lyricsSize = std::clamp(options.lyricsSize, SongPdfOptions::minFontSize, SongPdfOptions::maxFontSize);
+    const int chordsSize = std::clamp(options.chordsSize, SongPdfOptions::minFontSize, SongPdfOptions::maxFontSize);
+    const juce::Font lyricsFont(juce::FontOptions("Segoe UI", 12, juce::Font::plain).withPointHeight((float)lyricsSize));
+    const juce::Font chordsFont(juce::FontOptions("Segoe UI", 10, juce::Font::bold).withPointHeight((float)chordsSize));
+    const int lyricsHeight = (int)std::ceil(lyricsFont.getHeight());
+    const int chordsHeight = (int)std::ceil(chordsFont.getHeight());
+    constexpr int lineGap = 2;
+    constexpr float chordLyricsGap = 3;
+    constexpr int gapBetweenRows = 5;
+    const int pairedLineAdvance = chordsSize + lyricsSize + 3;
     std::vector<String> used;
     auto source = text(d.j, "song_sheet");
     if (source.isEmpty())
         source = initialSheet(d);
     auto rows = sheetLines(source);
-    if (song) {
-        for (auto &row : rows) {
-            const bool hasChord = std::any_of(row.tokens.begin(), row.tokens.end(),
-                                              [](const auto &token) { return token.chord.isNotEmpty(); });
-            const bool hasText = std::any_of(row.tokens.begin(), row.tokens.end(), [](const auto &token) {
-                return token.text.trim().isNotEmpty();
-            });
-            const float rowHeight = hasChord && hasText ? 44.f : 22.f;
-            const int chordHeight = hasChord && hasText ? 18 : 0;
-            float x = 30;
-            if (y > 760) {
-                g = page();
-                y = 78;
-            }
-            if (!hasChord && !hasText) {
-                y += 22;
-                continue;
-            }
-            std::vector<SheetToken> pieces;
-            for (auto &token : row.tokens) {
-                int offset = 0;
-                bool first = true;
-                do {
-                    int stop = offset;
-                    while (stop < token.text.length() &&
-                           !juce::CharacterFunctions::isWhitespace(token.text[stop]))
-                        ++stop;
-                    while (stop < token.text.length() &&
-                           juce::CharacterFunctions::isWhitespace(token.text[stop]))
-                        ++stop;
-                    pieces.push_back({token.text.substring(offset, stop), first ? token.chord : String(),
-                                      token.sourceStart + offset, token.sourceStart + stop});
-                    first = false;
-                    if (stop == offset)
-                        break;
-                    offset = stop;
-                } while (offset < token.text.length());
-            }
-            for (auto &token : pieces) {
-                juce::Font font(juce::FontOptions("Segoe UI", 14, juce::Font::plain));
-                juce::GlyphArrangement glyphs;
-                glyphs.addLineOfText(font, token.text, 0, 0);
-                float width = std::max(4.f, glyphs.getBoundingBox(0, -1, true).getWidth() + 2);
+    for (auto &row : rows) {
+        if (std::none_of(row.tokens.begin(), row.tokens.end(), [](const auto &token) {
+                return token.chord.isNotEmpty() || token.text.trim().isNotEmpty();
+            })) {
+            ensureSpace(lyricsHeight + lineGap);
+            y += lyricsHeight + lineGap;
+            continue;
+        }
+        std::vector<SheetToken> pieces;
+        for (auto &token : row.tokens) {
+            int offset = 0;
+            bool first = true;
+            do {
+                int stop = offset;
+                while (stop < token.text.length() &&
+                       !juce::CharacterFunctions::isWhitespace(token.text[stop]))
+                    ++stop;
+                while (stop < token.text.length() &&
+                       juce::CharacterFunctions::isWhitespace(token.text[stop]))
+                    ++stop;
+                pieces.push_back({token.text.substring(offset, stop), first ? token.chord : String(),
+                                  token.sourceStart + offset, token.sourceStart + stop});
+                first = false;
+                if (stop == offset)
+                    break;
+                offset = stop;
+            } while (offset < token.text.length());
+        }
+        std::vector<float> widths;
+        widths.reserve(pieces.size());
+        for (const auto &token : pieces) {
+            juce::GlyphArrangement glyphs;
+            glyphs.addLineOfText(lyricsFont, token.text, 0, 0);
+            float width = std::max(4.f, glyphs.getBoundingBox(0, -1, true).getWidth() + 2);
+            if (token.chord.isNotEmpty()) {
                 juce::GlyphArrangement chordGlyphs;
-                chordGlyphs.addLineOfText(juce::Font(juce::FontOptions("Segoe UI", 14, juce::Font::bold)),
-                                          token.chord, 0, 0);
+                chordGlyphs.addLineOfText(chordsFont, token.chord, 0, 0);
                 width = std::max(width, chordGlyphs.getBoundingBox(0, -1, true).getWidth() + 8);
-                if (x + width > 565 && x > 30) {
-                    x = 30;
-                    y += rowHeight;
-                    if (y > 760) {
-                        g = page();
-                        y = 78;
-                    }
-                }
+            }
+            widths.push_back(std::min(535.f, width));
+        }
+        for (size_t first = 0; first < pieces.size();) {
+            size_t end = first;
+            float width = 0;
+            do {
+                width += widths[end++];
+            } while (end < pieces.size() && width + widths[end] <= 535);
+            juce::GlyphArrangement chordGlyphs, lyricsGlyphs;
+            float x = 30;
+            for (; first < end; ++first) {
+                const auto &token = pieces[first];
+                const int tokenWidth = (int)std::ceil(widths[first]);
                 if (token.chord.isNotEmpty()) {
-                    g->setColour(juce::Colour(0xffad793c));
-                    g->setFont(juce::FontOptions("Segoe UI", 14, juce::Font::bold));
-                    g->drawText(token.chord, (int)x, (int)y, (int)std::max(width, 20.f), 18,
-                                juce::Justification::left);
+                    chordGlyphs.addFittedText(chordsFont, token.chord, (float)(int)x, 0, (float)tokenWidth,
+                                              (float)chordsHeight, juce::Justification::left, 1, 1.f);
                     if (std::find(used.begin(), used.end(), token.chord) == used.end())
                         used.push_back(token.chord);
                 }
-                g->setColour(juce::Colour(0xff254962));
-                g->setFont(font);
-                g->drawText(token.text, (int)x, (int)y + chordHeight, (int)std::max(width, 1.f), 20,
-                            juce::Justification::left);
-                x += width;
+                if (token.text.trim().isNotEmpty())
+                    lyricsGlyphs.addFittedText(lyricsFont, token.text, (float)(int)x, 0, (float)tokenWidth,
+                                               (float)lyricsHeight, juce::Justification::left, 1, 1.f);
+                x += widths[first];
             }
-            y += rowHeight;
+            juce::Path chordInk, lyricsInk;
+            chordGlyphs.createPath(chordInk);
+            lyricsGlyphs.createPath(lyricsInk);
+            const auto chordBounds = chordInk.getBounds();
+            const auto lyricsBounds = lyricsInk.getBounds();
+            const bool paired = !chordInk.isEmpty() && !lyricsInk.isEmpty();
+            // Font line boxes contain extra space. Use the visible glyphs to
+            // keep the chord-to-lyrics gap predictable, even with accents.
+            const float lyricsTop = paired ? chordBounds.getHeight() + chordLyricsGap : 0;
+            const int height = paired ? (int)std::ceil(lyricsTop + lyricsBounds.getHeight())
+                                      : std::max(lyricsInk.isEmpty() ? chordsHeight : lyricsHeight,
+                                                 (int)std::ceil(std::max(chordBounds.getBottom(), lyricsBounds.getBottom())));
+            ensureSpace(height);
+            chordInk.applyTransform(juce::AffineTransform::translation(0, y - (paired ? chordBounds.getY() : 0)));
+            lyricsInk.applyTransform(juce::AffineTransform::translation(0, y + lyricsTop - (paired ? lyricsBounds.getY() : 0)));
+            g->setColour(juce::Colour(0xffad793c));
+            g->fillPath(chordInk);
+            g->setColour(juce::Colour(0xff254962));
+            g->fillPath(lyricsInk);
+            y += paired ? std::max(pairedLineAdvance, height + gapBetweenRows)
+                        : std::max(height + lineGap, (int)std::ceil(lyricsBounds.getBottom()) + gapBetweenRows);
         }
     }
-    if (song) {
+    if (!used.empty()) {
         float x = 30;
         y += 15;
         for (auto &n : used) {
-            if (y + 145 > 810) {
-                g = page();
-                y = 78;
-            }
+            if (x == 30)
+                ensureSpace(145);
             g->setColour(juce::Colour(0xff254962));
             g->setFont(juce::FontOptions("Segoe UI", 14, juce::Font::bold));
             g->drawText(n, (int)x, (int)y, 100, 20, juce::Justification::centred);
@@ -818,7 +1020,7 @@ void exportPdf(const Document &d, Theory &theory, const File &file, bool song) {
                        {"bass", utf(n.fromFirstOccurrenceOf("/", false, false))}};
             Document visual = d;
             visual.j["transpose"] = 0;
-            g->diagram({x, y + 18, 100, 125}, theory.chosen(chord, visual));
+            g->diagram({x, (float)y + 18, 100, 125}, theory.chosen(chord, visual));
             x += 110;
             if (x + 100 > 565) {
                 x = 30;

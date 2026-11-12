@@ -598,8 +598,30 @@ J verifyNative(const File &output) {
         const auto events = sheet.chords();
         check("Unanchored sheet edits leave timeline intact",
               applySheetChordEdits(sheet, theory, "[G]\n[F]One two [Dm]three [Am]four",
-                                  "[E]\n[F]One two [Dm]three [Am]four") != 0 && sheet.chords() == events);
+                                  "[G] [E]\n[F]One two [Dm]three [Am]four") != 0 && sheet.chords() == events);
         sheet.validate();
+        check("Unanchored sheet edits do not block timed replacements",
+              applySheetChordEdits(sheet, theory, "[G]\n[F]One two [Dm]three [Am]four",
+                                  "[G] [E]\n[F]One two [Em]three [Am]four") != 0 &&
+                  sheet.chords().front() == intro && text(sheet.chords()[3], "name") == "Em");
+        const auto current = initialSheet(sheet);
+        check("Sheet instrumental replacement retains existing timestamp",
+              current.startsWith("[G]\n") &&
+                  applySheetChordEdits(sheet, theory, current, "[E]" + current.substring(3)) == 0 &&
+                  sheet.chords().front()["start"] == 0. && text(sheet.chords().front(), "name") == "E");
+    }
+    if (const auto fixture = juce::SystemStats::getEnvironmentVariable("KITHARA_SHEET_TEST_PROJECT", {});
+        fixture.isNotEmpty()) {
+        auto sheet = Document::load(File(fixture));
+        const auto before = initialSheet(sheet);
+        const auto after = text(sheet.j, "song_sheet");
+        require(after.isNotEmpty(), "Sheet synchronization fixture requires saved edits");
+        const auto events = sheet.chords();
+        const auto pending = applySheetChordEdits(sheet, theory, before, after);
+        sheet.validate();
+        check("Saved sheet reapplication changes timed chords", sheet.chords() != events);
+        writeJson(output.getChildFile("sheet-reapplication.json"),
+                  {{"chords", sheet.chords()}, {"pending", pending}});
     }
     {
         Document sheet;

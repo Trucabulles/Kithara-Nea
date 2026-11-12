@@ -1,6 +1,6 @@
 # KITHÁRA NÉA
 ## User manual
-Version 0.2.7 • November 2026
+Version 0.2.8 • November 2026
 
 KITHÁRA NÉA analyzes chords in a recording, follows lyrics and helps prepare a song sheet. Music analysis and lyric transcription are separate actions, started on demand. Processing takes place locally.
 
@@ -67,7 +67,7 @@ Edit data, at the bottom of the settings panel, opens a secondary window with Ch
 
 Chord analysis and lyric alignment may run in either order. The automatic song sheet combines the available results without running Whisper again. Existing manually edited sheets are preserved; Recalculate placement explicitly replaces them after confirmation. Older saved sheets are treated as automatic only when they exactly match the previous generator output.
 
-Prepare song sheet is available in the hamburger menu. The Source text tab preserves line breaks. Chords are encoded as [Am] before a word or syllable; the preview displays them above. In the preview, click a word to insert the selected chord. Hover highlights the chord in place. Ctrl+drag a chord to move it with a floating name and drop marker; Escape cancels the gesture. Right-click a chord to delete its sheet annotation immediately, without a menu or confirmation. Ctrl+Z undoes an insertion, deletion or move; Ctrl+Y or Ctrl+Shift+Z redoes it. Insert at cursor remains available in Source text. Saving also updates the Chords track when placement can be identified. Replacements retain their timing. Added or moved chords use the start of the destination word. If placement is ambiguous, check the Chords track. One undo restores both views after saving. Check and correct automatic placement by listening. Diagrams use the project's selected fingerings.
+Prepare song sheet is available in the hamburger menu. The Source text tab preserves line breaks. Chords are encoded as [Am] before a word or syllable; the preview displays them above. In the preview, click a word to insert the selected chord. Hover highlights the chord in place. Ctrl+drag a chord to move it with a floating name and drop marker; Escape cancels the gesture. Right-click a chord to delete its sheet annotation immediately, without a menu or confirmation. Ctrl+Z undoes an insertion, deletion or move; Ctrl+Y or Ctrl+Shift+Z redoes it. Insert at cursor remains available in Source text. Saving also updates the Chords track when placement can be identified. Replacements retain their timing. Added or moved chords use the start of the destination word. Timed edits are applied even when other placements need review. Use Reapply chords to track to apply previously saved edits. One undo restores both views after saving. Check and correct automatic placement by listening. Diagrams use the project's selected fingerings.
 
 Export offers song sheet PDF or ChordPro, chord chart PDF, MIDI or WAV accompaniment, and chords in CSV or text. MIDI accompaniment realizes the detected harmony; it does not transcribe every note actually played. ChordPro is a reusable text document. The song sheet PDF has adjustable lyrics and chord font sizes, with 12 pt and 10 pt defaults respectively. Page numbers appear in the footer.
 

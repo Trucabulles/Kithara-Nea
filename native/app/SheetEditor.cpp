@@ -293,6 +293,7 @@ class SheetEditor : public juce::Component {
     juce::TextButton chordMenu{String::fromUTF8("▾")};
     juce::StringArray chordOptions;
     juce::TextButton insert{tr("Insérer au curseur")}, rebuild{tr("Recalculer le placement auto")},
+        sync{tr("Réappliquer les accords à la piste")},
         save{tr("Enregistrer")}, cancel{tr("Annuler")};
     CloseableDialog *dialog = nullptr;
     void replaceText(int start, int end, const String &value) {
@@ -361,7 +362,7 @@ class SheetEditor : public juce::Component {
         chords.setText(chordOptions.isEmpty() ? String("C") : chordOptions[0], false);
         chordMenu.setEnabled(!chordOptions.isEmpty());
         for (auto *component :
-             std::initializer_list<juce::Component *>{&chords, &chordMenu, &insert, &rebuild, &save, &cancel})
+             std::initializer_list<juce::Component *>{&chords, &chordMenu, &insert, &rebuild, &sync, &save, &cancel})
             addAndMakeVisible(component);
         editor.onTextChange = [this] { preview.setSource(editor.getText()); };
         tabs.changed = [this] { resized(); };
@@ -391,6 +392,11 @@ class SheetEditor : public juce::Component {
         save.onClick = [this] {
             if (dialog)
                 dialog->exitModalState(1);
+        };
+        sync.setEnabled(text(app.doc.j, "song_sheet").isNotEmpty());
+        sync.onClick = [this] {
+            if (dialog)
+                dialog->exitModalState(2);
         };
         cancel.onClick = [this] {
             if (dialog)
@@ -423,6 +429,7 @@ class SheetEditor : public juce::Component {
         cancel.setBounds(footer.removeFromRight(110));
         footer.removeFromRight(10);
         save.setBounds(footer.removeFromRight(130));
+        sync.setBounds(footer.removeFromLeft(260));
         r.removeFromBottom(10);
         auto toolbar = r.removeFromBottom(35);
         chordPrompt.setBounds(toolbar.removeFromLeft(190));
@@ -450,16 +457,16 @@ void App::editSheet() {
     auto *dialog = presentDialog(
         tr("Song sheet · paroles et accords"), std::move(content), std::min(1100, area.getWidth() - 40),
         std::min(840, area.getHeight() - 40), [safe = safePointer()](int code, juce::Component &component) {
-            if (!safe || code != 1)
+            if (!safe || (code != 1 && code != 2))
                 return;
             auto candidate = safe->doc;
             auto before = text(candidate.j, "song_sheet");
-            if (before.isEmpty())
+            if (code == 2 || before.isEmpty())
                 before = initialSheet(candidate);
             const auto after = static_cast<SheetEditor &>(component).source();
-            bool synced = false;
+            int pending = 0;
             try {
-                synced = applySheetChordEdits(candidate, safe->theory, before, after) == 0;
+                pending = applySheetChordEdits(candidate, safe->theory, before, after);
                 candidate.j["song_sheet"] = utf(after);
                 candidate.j["song_sheet_generated"] = utf(initialSheet(candidate));
                 candidate.validate();
@@ -472,8 +479,8 @@ void App::editSheet() {
                 safe->doc = std::move(candidate);
                 safe->refresh();
             }
-            safe->setStatus(synced ? tr("Song sheet enregistrée dans le projet")
-                                   : tr("Song sheet enregistrée · placement d’accord à vérifier dans la piste Accords"));
+            safe->setStatus(pending == 0 ? tr("Song sheet enregistrée dans le projet")
+                                         : tr("Song sheet enregistrée · certains placements restent à vérifier"));
         });
     editor->setDialog(dialog);
 }

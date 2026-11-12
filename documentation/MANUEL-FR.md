@@ -1,6 +1,6 @@
 # KITHÁRA NÉA
 ## Manuel d’utilisation
-Version 0.2.7 • Novembre 2026
+Version 0.2.8 • Novembre 2026
 
 KITHÁRA NÉA permet d’analyser les accords d’un enregistrement, de suivre les paroles et de préparer une song sheet. L’analyse musicale et la transcription sont deux actions distinctes, lancées à la demande. Les traitements restent locaux.
 
@@ -67,7 +67,7 @@ Le champ « Choisir ou saisir un accord » permet de taper un nom absent des acc
 
 L’analyse des accords et l’alignement des paroles peuvent être lancés dans n’importe quel ordre. La song sheet automatique combine les résultats disponibles sans relancer Whisper. Une sheet retouchée manuellement est conservée ; Recalculer le placement permet de la remplacer explicitement après confirmation. Une ancienne sheet sauvegardée n’est considérée comme automatique que si elle correspond exactement à l’ancien résultat du générateur.
 
-Préparer la song sheet se trouve dans le menu hamburger. Texte source conserve les sauts de ligne et les accords [Am] ; « Insérer au curseur » y reste disponible. Dans l’aperçu : cliquer un mot insère l’accord choisi ; survoler un accord le surligne à sa place ; Ctrl+glisser le déplace avec un libellé et un repère de dépôt ; Échap annule le geste. Le clic droit supprime immédiatement l’accord, sans menu ni confirmation. Ctrl+Z annule chaque édition ; Ctrl+Y ou Ctrl+Maj+Z la rétablit. À l’enregistrement, les accords retouchés mettent aussi à jour la piste Accords si leur emplacement est identifiable. Un remplacement conserve son heure et un ajout ou déplacement utilise le début du mot de destination. En cas d’ambiguïté, vérifiez la piste Accords. Une seule annulation rétablit les deux vues après enregistrement. Vérifiez les placements à l’écoute ; les diagrammes utilisent les doigtés choisis.
+Préparer la song sheet se trouve dans le menu hamburger. Texte source conserve les sauts de ligne et les accords [Am] ; « Insérer au curseur » y reste disponible. Dans l’aperçu : cliquer un mot insère l’accord choisi ; survoler un accord le surligne à sa place ; Ctrl+glisser le déplace avec un libellé et un repère de dépôt ; Échap annule le geste. Le clic droit supprime immédiatement l’accord, sans menu ni confirmation. Ctrl+Z annule chaque édition ; Ctrl+Y ou Ctrl+Maj+Z la rétablit. À l’enregistrement, les accords retouchés mettent aussi à jour la piste Accords si leur emplacement est identifiable. Un remplacement conserve son heure et un ajout ou déplacement utilise le début du mot de destination. Les retouches horodatées sont appliquées même si certains placements restent à vérifier. Pour reprendre des retouches déjà enregistrées, utilisez Réappliquer les accords à la piste. Une seule annulation rétablit les deux vues après enregistrement. Vérifiez les placements à l’écoute ; les diagrammes utilisent les doigtés choisis.
 
 « Exporter » propose la song sheet PDF ou ChordPro, une grille PDF, un accompagnement MIDI ou WAV et les accords en CSV ou texte. L’accompagnement MIDI est une réalisation des accords reconnus, pas une transcription de toutes les notes effectivement jouées. Le ChordPro est un document texte réutilisable. Le PDF de la song sheet propose deux tailles réglables, par défaut 12 pt pour les paroles et 10 pt pour les accords. Les pages sont numérotées en pied.
 

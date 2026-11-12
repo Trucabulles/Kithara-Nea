@@ -491,6 +491,12 @@ int applySheetChordEdits(Document &doc, Theory &theory, const String &before, co
         double earliest = 0;
         std::vector<String> chords;
     };
+    struct ParsedSheet {
+        std::map<int, Anchor> anchored;
+        std::vector<String> unanchored;
+        std::vector<String> sequence;
+        std::vector<size_t> unanchoredIndices;
+    };
     auto parse = [&](const String &source) {
         String plain;
         std::vector<std::pair<int, String>> tags;
@@ -516,33 +522,33 @@ int applySheetChordEdits(Document &doc, Theory &theory, const String &before, co
                 for (int i = 0; i < match.size; ++i)
                     aligned[match.a + i] = match.b + i;
         }
-        std::map<int, Anchor> anchored;
-        std::vector<String> unanchored;
+        ParsedSheet parsed;
         size_t index = 0;
         for (const auto &[offset, chord] : tags) {
+            parsed.sequence.push_back(chord);
             while (index < refs.size() && refs[index].offset + refs[index].word.length() <= offset)
                 ++index;
             if (index == refs.size() || aligned[index] < 0 ||
                 plain.substring(offset, refs[index].offset).containsChar('\n')) {
-                unanchored.push_back(chord);
+                parsed.unanchored.push_back(chord);
+                parsed.unanchoredIndices.push_back(parsed.sequence.size() - 1);
                 continue;
             }
             const int word = aligned[index];
-            auto &anchor = anchored[word];
+            auto &anchor = parsed.anchored[word];
             anchor.earliest = times[word].first;
             if (index > 0 && aligned[index - 1] >= 0 &&
                 !plain.substring(refs[index - 1].offset, refs[index].offset).containsChar('\n'))
                 anchor.earliest = std::min(anchor.earliest, times[aligned[index - 1]].second);
             anchor.chords.push_back(chord);
         }
-        return std::make_pair(anchored, unanchored);
+        return parsed;
     };
-    auto [oldAnchors, oldUnanchored] = parse(before);
-    auto [newAnchors, newUnanchored] = parse(after);
-    // If a tag has moved to or from text without timing, don't apply just
-    // one half of that edit to the timeline.
-    if (oldUnanchored != newUnanchored)
-        return 1;
+    auto oldSheet = parse(before);
+    auto newSheet = parse(after);
+    auto &oldAnchors = oldSheet.anchored;
+    auto &newAnchors = newSheet.anchored;
+    int pending = 0;
 
     auto original = doc.chords();
     const int transposition = doc.j.value("transpose", 0);
@@ -574,7 +580,47 @@ int applySheetChordEdits(Document &doc, Theory &theory, const String &before, co
         if (anchor.chords != oldAnchors[word].chords)
             changedWords.insert(word);
     std::map<size_t, String> replacements;
+    std::map<size_t, size_t> continuations;
     std::map<double, String> insertions;
+    if (oldSheet.unanchored != newSheet.unanchored) {
+        // A generated sheet preserves the order of its chord events. Use
+        // that order only when the entire sequence can be verified.
+        std::vector<String> names;
+        std::vector<std::vector<size_t>> groups;
+        String previous;
+        double previousEnd = -1;
+        for (size_t i = 0; i < original.size(); ++i) {
+            const auto name = label(original[i], doc);
+            const double start = original[i].at("start"), end = original[i].at("end");
+            if (text(original[i], "name") != "N") {
+                if (!groups.empty() && name == previous && start <= previousEnd + .02)
+                    groups.back().push_back(i);
+                else {
+                    names.push_back(name);
+                    groups.push_back({i});
+                }
+            }
+            previousEnd = name == previous && start <= previousEnd + .02 ? std::max(previousEnd, end) : end;
+            previous = name;
+        }
+        if (names == oldSheet.sequence && before == initialSheet(doc)) {
+            int a = 0, b = 0;
+            for (auto match : matching(oldSheet.unanchored, newSheet.unanchored)) {
+                const int removed = match.a - a, added = match.b - b;
+                if (removed == 1 && added == 1) {
+                    const auto index = oldSheet.unanchoredIndices[(size_t)a];
+                    for (auto event : groups[index])
+                        replacements.emplace(event, newSheet.unanchored[(size_t)b]);
+                } else if (removed || added) {
+                    ++pending;
+                }
+                a = match.a + match.size;
+                b = match.b + match.size;
+            }
+        } else {
+            ++pending;
+        }
+    }
     for (int word : changedWords) {
         const auto &old = oldAnchors[word];
         const auto &next = newAnchors[word];
@@ -589,51 +635,94 @@ int applySheetChordEdits(Document &doc, Theory &theory, const String &before, co
                 i = oldNames.erase(i);
             }
         }
-        if (oldNames.size() > 1 || newNames.size() > 1 || start >= doc.duration())
-            return 1;
-        if (!oldNames.empty()) {
+        if (newNames.size() > std::max<size_t>(1, oldNames.size()) || start >= doc.duration()) {
+            ++pending;
+            continue;
+        }
+        std::vector<size_t> targets;
+        bool resolved = true;
+        for (const auto &name : oldNames) {
             std::vector<size_t> hits;
             for (size_t i = 0; i < original.size(); ++i) {
                 const double at = original[i].at("start");
-                if (at >= old.earliest && (at < end || at == start) && label(original[i], doc) == oldNames[0])
+                if (at >= old.earliest && (at < end || at == start) && label(original[i], doc) == name &&
+                    !replacements.count(i) && std::find(targets.begin(), targets.end(), i) == targets.end())
                     hits.push_back(i);
             }
-            if (hits.size() != 1 || !replacements.emplace(hits[0], newNames.empty() ? String("N") : newNames[0]).second)
-                return 1;
-        } else if (!newNames.empty() && !insertions.emplace(start, newNames[0]).second) {
-            return 1;
+            if (hits.size() != 1) {
+                ++pending;
+                resolved = false;
+                continue;
+            }
+            targets.push_back(hits[0]);
+        }
+        std::sort(targets.begin(), targets.end());
+        if (!resolved && !newNames.empty()) {
+            // The destination word still provides a valid time for the new chord.
+            if (newNames.size() == 1) {
+                if (!insertions.emplace(start, newNames[0]).second)
+                    ++pending;
+                newNames.clear();
+            } else {
+                continue;
+            }
+        }
+        for (size_t i = 0; i < targets.size(); ++i) {
+            replacements.emplace(targets[i], i < newNames.size() ? newNames[i] : String("N"));
+            if (!newNames.empty() && i >= newNames.size() &&
+                targets[i] == targets[i - 1] + 1 &&
+                original[targets[i]].at("start").get<double>() <=
+                    original[targets[i - 1]].at("end").get<double>() + .02 &&
+                (i == newNames.size() || continuations.count(targets[i - 1])))
+                continuations.emplace(targets[i], targets[newNames.size() - 1]);
+        }
+        if (targets.empty() && resolved && !newNames.empty() && !insertions.emplace(start, newNames[0]).second) {
+            ++pending;
         }
     }
     auto events = original;
+    std::set<size_t> failed;
     for (const auto &[index, name] : replacements)
-        if (!setChord(events[index], name))
-            return 1;
+        if (!setChord(events[index], name)) {
+            failed.insert(index);
+            ++pending;
+        }
+    for (const auto &[index, first] : continuations) {
+        if (failed.count(first))
+            events[index] = original[index];
+        else
+            events[first]["end"] = events[index].at("end");
+    }
+    for (auto i = continuations.rbegin(); i != continuations.rend(); ++i)
+        if (!failed.count(i->second))
+            events.erase(events.begin() + (J::difference_type)i->first);
     for (const auto &[start, name] : insertions) {
         auto next = std::lower_bound(events.begin(), events.end(), start,
             [](const J &event, double at) { return event.at("start").get<double>() < at; });
         if (next != events.end() && next->at("start").get<double>() == start) {
             if (!setChord(*next, name))
-                return 1;
+                ++pending;
             continue;
         }
         double end = next == events.end() ? doc.duration() : next->at("start").get<double>();
+        auto previous = next;
         if (next != events.begin()) {
-            auto previous = std::prev(next);
+            previous = std::prev(next);
             const double previousEnd = previous->at("end");
-            if (previousEnd > start) {
+            if (previousEnd > start)
                 end = std::min(end, previousEnd);
-                (*previous)["end"] = start;
-            }
         }
-        if (end <= start)
-            return 1;
         J event = {{"start", start}, {"end", end}};
-        if (!setChord(event, name))
-            return 1;
+        if (end <= start || !setChord(event, name)) {
+            ++pending;
+            continue;
+        }
+        if (previous != next && previous->at("end").get<double>() > start)
+            (*previous)["end"] = start;
         events.insert(next, std::move(event));
     }
     doc.chords() = std::move(events);
-    return 0;
+    return pending;
 }
 void exportCsv(const Document &d, const File &file) {
     auto quote = [](String s) { return "\"" + s.replace("\"", "\"\"") + "\""; };
